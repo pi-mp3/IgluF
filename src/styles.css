@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root{--teal: #114B4F}
+.btn-primary{background:var(--teal);color:white;padding:0.75rem 1rem;border-radius:8px}
+.btn-outline{border:2px solid var(--teal);padding:0.6rem 1rem;border-radius:8px}
+.card{background:#f8fafb;padding:1.25rem;border-radius:12px}
+.input{width:100%;padding:0.6rem;border:1px solid #e6e6e6;border-radius:8px}
