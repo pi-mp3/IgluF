@@ -1,8 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import MeetingExplore from '../widgets/MeetingExplore';
 
 export default function Home() {
+  const navigate = useNavigate();
+
   return (
     <>
       {/* HERO */}
@@ -12,19 +14,23 @@ export default function Home() {
             <p className="hero-eyebrow">Videoconferencias que conectan equipos</p>
             <h1 className="hero-title">Videoconferencias que conectan equipos</h1>
             <p className="hero-subtitle">
-              Iglú es la plataforma de videoconferencias en tiempo real con chat, audio y video de
-              alta calidad. Simple, rápida y confiable.
+              Iglú es la plataforma de videoconferencias en tiempo real con chat,
+              audio y video de alta calidad. Simple, rápida y confiable.
             </p>
 
             <div className="hero-actions">
-              {/* Ir a registro */}
-              <Link to="/register" className="btn-primary">
+              <button
+                className="btn-primary"
+                onClick={() => navigate('/register')}
+              >
                 Comenzar Gratis
-              </Link>
-              {/* Ir a login */}
-              <Link to="/login" className="btn-outline">
+              </button>
+              <button
+                className="btn-outline"
+                onClick={() => navigate('/login')}
+              >
                 Iniciar Sesión
-              </Link>
+              </button>
             </div>
           </div>
 

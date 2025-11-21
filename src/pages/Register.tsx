@@ -47,6 +47,8 @@ export default function Register() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Register submit', form);
+    // Después de registrar, de momento te llevo al dashboard
+    navigate('/dashboard');
   };
 
   return (
@@ -73,7 +75,7 @@ export default function Register() {
             </div>
           </label>
 
-          {/* Correo */}
+          {/* Correo electrónico */}
           <label className="auth-label">
             Correo electrónico
             <div className="auth-input-wrapper">
@@ -124,7 +126,7 @@ export default function Register() {
             </div>
           </label>
 
-          {/* Términos */}
+          {/* Acepto términos */}
           <div className="auth-terms-wrapper">
             <label className="auth-terms">
               <input

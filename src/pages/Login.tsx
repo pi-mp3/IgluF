@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-/* ============================
-   ICONO GOOGLE (OFICIAL)
-============================== */
+/* ICONO GOOGLE */
 const GoogleIcon: React.FC = () => (
   <svg width="18" height="18" viewBox="0 0 533.5 544.3">
     <path fill="#4285F4" d="M533.5 278.4c0-17.4-1.5-34.1-4.3-50.2H272v95h147.5c-6.4 34.4-25 63.5-53.3 83.2l86.1 67.1c50.3-46.4 80.2-114.8 80.2-195.1z"/>
@@ -13,9 +11,7 @@ const GoogleIcon: React.FC = () => (
   </svg>
 );
 
-/* ============================
-   ICONO FACEBOOK (OFICIAL)
-============================== */
+/* ICONO FACEBOOK */
 const FacebookIcon: React.FC = () => (
   <svg width="18" height="18" viewBox="0 0 32 32">
     <path
@@ -40,7 +36,7 @@ export default function Login() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, type, checked, value } = e.target;
-    setForm((prev) => ({
+    setForm(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
@@ -49,6 +45,8 @@ export default function Login() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Login submit', form);
+    // Luego aquí vas a validar con backend; por ahora solo navega:
+    navigate('/dashboard');
   };
 
   return (
@@ -92,7 +90,7 @@ export default function Login() {
             </div>
           </label>
 
-          {/* Recordarme / Olvidaste tu contraseña */}
+          {/* Recordarme + link */}
           <div className="auth-row">
             <label className="auth-remember">
               <input

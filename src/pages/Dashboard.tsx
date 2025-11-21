@@ -1,0 +1,172 @@
+import React, { useState } from 'react';
+
+interface Meeting {
+  id: string;
+  date: string;
+  time: string;
+  participants: number;
+  duration: string;
+}
+
+const mockMeetings: Meeting[] = [
+  {
+    id: 'ABC123XYZ',
+    date: '14 Nov 2024',
+    time: '14:30',
+    participants: 5,
+    duration: '45 min',
+  },
+  {
+    id: 'DEF456UVW',
+    date: '13 Nov 2024',
+    time: '10:00',
+    participants: 3,
+    duration: '30 min',
+  },
+  {
+    id: 'GHI789RST',
+    date: '12 Nov 2024',
+    time: '16:15',
+    participants: 6,
+    duration: '60 min',
+  },
+];
+
+export default function Dashboard() {
+  const [joinId, setJoinId] = useState('');
+
+  const handleCreateMeeting = () => {
+    // Luego se conectará con backend / socket
+    alert('Aquí iría la lógica para crear una nueva reunión 🙂');
+  };
+
+  const handleJoinMeeting = () => {
+    if (!joinId.trim()) {
+      alert('Ingresa un ID de reunión.');
+      return;
+    }
+    alert(`Unirse a la reunión con ID: ${joinId}`);
+  };
+
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id).catch(() => {});
+    alert(`ID ${id} copiado al portapapeles`);
+  };
+
+  const handleIaSummary = (id: string) => {
+    alert(`Aquí mostrarías el resumen IA de la reunión ${id}`);
+  };
+
+  return (
+    <div className="dashboard-page">
+      <div className="dashboard-wrapper">
+        {/* Título */}
+        <header className="dashboard-header">
+          <div>
+            <h1 className="dashboard-title">Panel de Control</h1>
+            <p className="dashboard-subtitle">
+              Crea o únete a una reunión
+            </p>
+          </div>
+        </header>
+
+        {/* Grid principal: Crear / Unirse */}
+        <section className="dashboard-main-grid">
+          {/* Crear reunión */}
+          <div className="dashboard-card">
+            <div className="dashboard-card-header">
+              <div className="dashboard-icon-circle">
+                <span className="dashboard-icon">＋</span>
+              </div>
+              <div>
+                <h2 className="dashboard-card-title">Crear Reunión</h2>
+                <p className="dashboard-card-text">
+                  Genera un ID único y compártelo con los participantes.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="dashboard-primary-btn"
+              onClick={handleCreateMeeting}
+            >
+              Crear Nueva Reunión
+            </button>
+          </div>
+
+          {/* Unirse a reunión */}
+          <div className="dashboard-card">
+            <div className="dashboard-card-header">
+              <div className="dashboard-icon-circle">
+                <span className="dashboard-icon">🕒</span>
+              </div>
+              <div>
+                <h2 className="dashboard-card-title">Unirse a Reunión</h2>
+                <p className="dashboard-card-text">
+                  Ingresa el ID de la reunión para unirte.
+                </p>
+              </div>
+            </div>
+
+            <div className="dashboard-field-label">ID de la reunión</div>
+            <input
+              className="dashboard-input"
+              placeholder="ABC123XYZ"
+              value={joinId}
+              onChange={(e) => setJoinId(e.target.value)}
+            />
+
+            <button
+              type="button"
+              className="dashboard-secondary-btn"
+              onClick={handleJoinMeeting}
+            >
+              Unirse Ahora
+            </button>
+          </div>
+        </section>
+
+        {/* Reuniones recientes */}
+        <section className="dashboard-recent">
+          <h2 className="dashboard-section-title">Reuniones Recientes</h2>
+
+          <div className="dashboard-meetings-list">
+            {mockMeetings.map((m) => (
+              <article key={m.id} className="meeting-row">
+                <div className="meeting-main">
+                  <div className="meeting-avatar">
+                    <span>📹</span>
+                  </div>
+                  <div>
+                    <div className="meeting-id">ID: {m.id}</div>
+                    <div className="meeting-meta">
+                      {m.date} · {m.time} · {m.participants} participantes ·{' '}
+                      {m.duration}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="meeting-actions">
+                  <button
+                    type="button"
+                    className="meeting-ia-btn"
+                    onClick={() => handleIaSummary(m.id)}
+                  >
+                    Resumen IA
+                  </button>
+                  <button
+                    type="button"
+                    className="meeting-copy-btn"
+                    onClick={() => handleCopyId(m.id)}
+                  >
+                    Copiar ID
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
