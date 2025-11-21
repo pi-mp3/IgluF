@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function ForgotPassword() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
 
@@ -10,72 +11,70 @@ export default function ForgotPassword() {
 
     if (!email.trim()) return;
 
-    // Aquí luego conectarás tu API / endpoint real
     console.log("Email enviado a:", email);
 
     setSent(true);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6"
-         style={{ background: "var(--bg-page)" }}>
-      
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+    <div className="auth-page">
+      <div className="auth-wrapper">
 
-        {/* Título */}
-        <h2 className="text-2xl font-semibold text-center text-[var(--teal)]">
-          Recuperar contraseña
-        </h2>
-
-        <p className="text-center text-gray-600 mt-2 text-sm">
-          Ingresa tu correo electrónico y te enviaremos un enlace para cambiar tu contraseña.
+        <h1 className="auth-title">Recuperar contraseña</h1>
+        <p className="auth-subtitle">
+          Ingresa tu correo y te enviaremos un enlace para restablecerla.
         </p>
 
-        {/* Formulario */}
-        {!sent ? (
-          <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+        <div className="auth-card">
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+          {!sent ? (
+            <form onSubmit={handleSubmit}>
+
+              {/* Correo */}
+              <label className="auth-label">
                 Correo electrónico
+                <div className="auth-input-wrapper">
+                  <span className="auth-input-icon">@</span>
+                  <input
+                    className="auth-input"
+                    type="email"
+                    placeholder="tu@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
               </label>
-              <input
-                type="email"
-                placeholder="tucorreo@ejemplo.com"
-                className="input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+
+              {/* Botón */}
+              <button type="submit" className="auth-submit" style={{ marginTop: "1.8rem" }}>
+                Enviar enlace
+              </button>
+            </form>
+          ) : (
+            <div className="text-center mt-4">
+              <p className="text-green-600 font-medium">
+                ✔ Enviamos un correo a <strong>{email}</strong>
+              </p>
+
+              <p className="text-gray-600 mt-1 text-sm">
+                Revisa tu bandeja de entrada.
+              </p>
             </div>
+          )}
 
+          {/* Enlace a login */}
+          <p className="auth-bottom-text">
             <button
-              type="submit"
-              className="btn-primary w-full text-center"
-              style={{ background: "var(--teal)", color: "#ffffff" }}
+              type="button"
+              className="auth-link"
+              onClick={() => navigate("/login")}
             >
-              Enviar enlace
+              ← Volver a iniciar sesión
             </button>
-          </form>
-        ) : (
-          <div className="mt-6 text-center text-green-600 font-medium">
-            ✔ Se ha enviado un correo a <strong>{email}</strong>.
-            <p className="text-gray-600 mt-1 text-sm">
-              Revisa tu bandeja de entrada y sigue las instrucciones.
-            </p>
-          </div>
-        )}
+          </p>
 
-        {/* Enlace a login */}
-        <div className="text-center mt-6">
-          <Link
-            to="/login"
-            className="text-[var(--teal)] hover:underline font-medium"
-          >
-            ← Volver a Iniciar Sesión
-          </Link>
         </div>
-
       </div>
     </div>
   );

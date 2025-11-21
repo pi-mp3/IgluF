@@ -5,6 +5,7 @@ import { Routes, Route } from "react-router-dom";
 
 import Home from './pages/Home'
 import Register from './pages/Register'
+import Login from "./pages/Login";
 import ForgotPassword from './pages/ForgotPassword'
 
 export default function App(){
@@ -15,15 +16,14 @@ export default function App(){
 
       <main className="flex-1">
         <Routes>
-
           <Route path="/" element={<Home />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-
         </Routes>
       </main>
 
       <Footer />
     </div>
-  )
+  );
 }

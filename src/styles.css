@@ -19,81 +19,102 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
   background: var(--bg-page);
   color: #0f172a;
 }
 
 /* ------------------------------ */
-/* 🟦 HEADER */
+/* 🟦 HEADER / NAVBAR */
 /* ------------------------------ */
-.header-bar {
-  background: var(--teal);
-  color: #f9fafb;
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
 }
 
 .header-inner {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.header-brand {
+/* Logo + texto "Iglú" */
+.header-logo {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-}
-
-.header-brand img {
-  height: 36px;
-  width: auto;
-}
-
-.header-brand span {
-  font-size: 1.05rem;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #0f172a;
   font-weight: 600;
+}
+
+.header-logo img {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+}
+
+.header-logo span {
+  font-size: 1.05rem;
   letter-spacing: 0.02em;
 }
 
+/* Contenedor de los botones de la derecha */
 .header-nav {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  font-size: 0.95rem;
+  gap: 1rem;
 }
 
-/* enlace “Iniciar Sesión” */
-.header-link {
+/* Botón tipo enlace: "Iniciar Sesión" en el header */
+.btn-link {
+  border: none;
   background: transparent;
-  border: none;
-  padding: 0;
-  color: #e5f3f5;
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-
-.header-link:hover {
-  text-decoration: underline;
-}
-
-/* botón “Registrarse” */
-.header-cta {
-  border-radius: 999px;
-  background: #f9fafb;
-  color: var(--teal);
-  padding: 0.55rem 1.6rem;
-  border: none;
+  padding: 0.35rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
   font-weight: 500;
+  color: #0f172a;
+  text-decoration: none;
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.header-cta:hover {
-  filter: brightness(0.95);
+.btn-link:hover {
+  background: rgba(15, 23, 42, 0.04);
 }
 
+/* En el header, el .btn-outline se ve teal sobre fondo blanco */
+.header .btn-outline {
+  border-radius: 9999px;
+  border: 1px solid var(--teal);
+  padding: 0.45rem 1.3rem;
+  background: #ffffff;
+  color: var(--teal);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease,
+    box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.header .btn-outline:hover {
+  background: var(--teal);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.25);
+}
 
 /* ------------------------------ */
 /* 🟦 HERO */
@@ -173,6 +194,7 @@ body {
   filter: brightness(0.96);
 }
 
+/* Versión general (hero): borde blanco sobre fondo teal */
 .btn-outline {
   background: transparent;
   color: #ffffff;
@@ -280,7 +302,7 @@ body {
 }
 
 /* ------------------------------ */
-/* 🟦 Inputs */
+/* 🟦 Inputs genéricos */
 /* ------------------------------ */
 .input {
   width: 100%;
@@ -392,4 +414,233 @@ body {
   .footer-inner {
     grid-template-columns: 1fr;
   }
+}
+
+/* ------------------------------ */
+/* 🟦 AUTH / LOGIN & REGISTER */
+/* ------------------------------ */
+.auth-page {
+  background: var(--bg-page);
+}
+
+.auth-wrapper {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 3.5rem 1.5rem 4.5rem;
+}
+
+.auth-title {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.auth-subtitle {
+  text-align: center;
+  margin-top: 0.4rem;
+  font-size: 0.98rem;
+  color: #6b7280;
+}
+
+.auth-card {
+  margin: 2.2rem auto 0;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 2.4rem 2.6rem;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+}
+
+/* Labels e inputs */
+.auth-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.auth-label + .auth-label {
+  margin-top: 1.3rem;
+}
+
+.auth-input-wrapper {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: #f9fafb;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  padding: 0.4rem 0.8rem;
+}
+
+.auth-input-icon {
+  font-size: 1rem;
+  color: #9ca3af;
+}
+
+.auth-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.95rem;
+  padding: 0.45rem 0;
+  flex: 1;
+  color: #111827;
+}
+
+.auth-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Recordarme + link */
+.auth-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.88rem;
+}
+
+.auth-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #4b5563;
+}
+
+.auth-remember input {
+  accent-color: var(--teal);
+}
+
+.auth-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.88rem;
+  color: #0c5a64;
+  cursor: pointer;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* Botón principal */
+.auth-submit {
+  margin-top: 1.6rem;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--teal);
+  border: none;
+  color: #f9fafb;
+  padding: 0.85rem 1.2rem;
+  font-size: 0.98rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.auth-submit:hover {
+  filter: brightness(0.96);
+}
+
+/* Separador */
+.auth-divider {
+  margin-top: 1.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.auth-divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.auth-divider-text {
+  white-space: nowrap;
+}
+
+/* Botones sociales */
+.auth-social-row {
+  margin-top: 1.4rem;
+  display: flex;
+  gap: 0.9rem;
+}
+
+.auth-social {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.auth-social:hover {
+  background: #f9fafb;
+}
+
+.auth-social-icon {
+  height: 20px;
+  width: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+/* Personalización por proveedor */
+.auth-social-google .auth-social-icon {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.auth-social-facebook .auth-social-icon {
+  background: #1877f2;
+  color: #ffffff;
+}
+
+/* Texto final */
+.auth-bottom-text {
+  margin-top: 1.6rem;
+  text-align: center;
+  font-size: 0.88rem;
+  color: #6b7280;
+}
+
+/* Responsive auth */
+@media (max-width: 640px) {
+  .auth-card {
+    padding: 2rem 1.6rem;
+  }
+}
+
+/* Ajuste del bloque de términos en registro */
+.auth-terms-wrapper {
+  margin-top: 1.3rem;
+}
+
+.auth-terms {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.auth-terms input {
+  margin-top: 0.15rem;
+  accent-color: var(--teal);
 }
