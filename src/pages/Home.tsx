@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import MeetingExplore from '../widgets/MeetingExplore';
 
 export default function Home() {
@@ -16,8 +17,14 @@ export default function Home() {
             </p>
 
             <div className="hero-actions">
-              <button className="btn-primary">Comenzar Gratis</button>
-              <button className="btn-outline">Iniciar Sesión</button>
+              {/* Ir a registro */}
+              <Link to="/register" className="btn-primary">
+                Comenzar Gratis
+              </Link>
+              {/* Ir a login */}
+              <Link to="/login" className="btn-outline">
+                Iniciar Sesión
+              </Link>
             </div>
           </div>
 
@@ -40,21 +47,21 @@ export default function Home() {
             </ul>
           </div>
 
-        <div className="card">
-          <h3 className="card-title">Reuniones</h3>
-          <ul className="card-list">
-            <li>Crear reunión</li>
-          </ul>
-        </div>
+          <div className="card">
+            <h3 className="card-title">Reuniones</h3>
+            <ul className="card-list">
+              <li>Crear reunión</li>
+            </ul>
+          </div>
 
-        <div className="card">
-          <h3 className="card-title">Perfil</h3>
-          <ul className="card-list">
-            <li>Ver perfil</li>
-          </ul>
+          <div className="card">
+            <h3 className="card-title">Perfil</h3>
+            <ul className="card-list">
+              <li>Ver perfil</li>
+            </ul>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
       {/* EXPLORAR SALA */}
       <section className="section">
