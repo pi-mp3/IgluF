@@ -89,3 +89,20 @@ export const recoverPassword = async (email: string) => {
   }
 };
 
+/**
+ * Resets the user's password using a recovery token.
+ * @param token - Token received in the password recovery email
+ * @param newPassword - New password to set
+ * @returns Response data from backend
+ */
+export const resetPassword = async (token: string, newPassword: string) => {
+  try {
+    const res = await http.post('/user/reset-password', {
+      token,
+      password: newPassword,
+    });
+    return res.data;
+  } catch (err: any) {
+    throw new Error(err.response?.data?.message || 'Error updating password');
+  }
+};
