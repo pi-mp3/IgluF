@@ -26,7 +26,7 @@ export interface LoginData {
  */
 export const registerUser = async (userData: RegisterData) => {
   try {
-    const res = await http.post('/register', userData);
+    const res = await http.post('/auth/register', userData);
     return res.data;
   } catch (err: any) {
     throw new Error(err.response?.data?.message || 'Error registering user');
@@ -40,7 +40,7 @@ export const registerUser = async (userData: RegisterData) => {
  */
 export const loginUser = async (credentials: LoginData) => {
   try {
-    const res = await http.post('/login', credentials);
+    const res = await http.post('/auth/login', credentials);
     return res.data;
   } catch (err: any) {
     throw new Error(err.response?.data?.message || 'Error logging in');
@@ -54,7 +54,7 @@ export const loginUser = async (credentials: LoginData) => {
  */
 export const loginGoogle = async (idToken: string) => {
   try {
-    const res = await http.post('/login/google', { idToken });
+    const res = await http.post('/auth/login/google', { idToken }); // fixed route
     return res.data;
   } catch (err: any) {
     throw new Error(err.response?.data?.message || 'Error logging in with Google');
@@ -68,7 +68,7 @@ export const loginGoogle = async (idToken: string) => {
  */
 export const loginFacebook = async (accessToken: string) => {
   try {
-    const res = await http.post('/login/facebook', { accessToken });
+    const res = await http.post('/auth/login/facebook', { accessToken }); // fixed route
     return res.data;
   } catch (err: any) {
     throw new Error(err.response?.data?.message || 'Error logging in with Facebook');
@@ -90,7 +90,7 @@ export const recoverPassword = async (email: string) => {
 };
 
 /**
- * Resets the user's password using a recovery token.
+ * Resets the user's password using a recovery token
  * @param token - Token received in the password recovery email
  * @param newPassword - New password to set
  * @returns Response data from backend
