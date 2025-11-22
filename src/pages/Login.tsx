@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loginUser, loginGoogle, loginFacebook, recoverPassword } from './api';
 
 /* ICONO GOOGLE */
 const GoogleIcon: React.FC = () => (
@@ -14,26 +15,26 @@ const GoogleIcon: React.FC = () => (
 /* ICONO FACEBOOK */
 const FacebookIcon: React.FC = () => (
   <svg width="18" height="18" viewBox="0 0 32 32">
-    <path
-      fill="#1877F2"
-      d="M32 16.1C32 7.2 24.9 0 16 0S0 7.2 0 16.1c0 8 5.9 14.7 13.6 15.9v-11h-4v-5h4v-3.8c0-4 2.4-6.2 6-6.2 1.7 0 3.4.3 3.4.3v3.8h-1.9c-1.9 0-2.5 1.2-2.5 2.4V16h4.3l-.7 5h-3.6v11C26.1 30.8 32 24.1 32 16.1z"
-    />
-    <path
-      fill="#fff"
-      d="M22.3 21l.7-5H19v-3.5c0-1.2.6-2.4 2.5-2.4h1.9V6.3s-1.7-.3-3.4-.3c-3.6 0-6 2.2-6 6.2V16h-4v5h4v11c.8.1 1.7.2 2.5.2s1.7-.1 2.5-.2V21h3.6z"
-    />
+    <path fill="#1877F2" d="M32 16.1C32 7.2 24.9 0 16 0S0 7.2 0 16.1c0 8 5.9 14.7 13.6 15.9v-11h-4v-5h4v-3.8c0-4 2.4-6.2 6-6.2 1.7 0 3.4.3 3.4.3v3.8h-1.9c-1.9 0-2.5 1.2-2.5 2.4V16h4.3l-.7 5h-3.6v11C26.1 30.8 32 24.1 32 16.1z"/>
+    <path fill="#fff" d="M22.3 21l.7-5H19v-3.5c0-1.2.6-2.4 2.5-2.4h1.9V6.3s-1.7-.3-3.4-.3c-3.6 0-6 2.2-6 6.2V16h-4v5h4v11c.8.1 1.7.2 2.5.2s1.7-.1 2.5-.2V21h3.6z"/>
   </svg>
 );
 
 export default function Login() {
   const navigate = useNavigate();
 
+  // ============================
+  // STATE
+  // ============================
   const [form, setForm] = useState({
     email: '',
     password: '',
     remember: true,
   });
 
+  // ============================
+  // HANDLE INPUT CHANGE
+  // ============================
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, type, checked, value } = e.target;
     setForm(prev => ({
@@ -42,11 +43,45 @@ export default function Login() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // ============================
+  // HANDLE FORM SUBMIT
+  // ============================
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login submit', form);
-    // Luego aquí vas a validar con backend; por ahora solo navega:
-    navigate('/dashboard');
+    try {
+      const data = await loginUser({ email: form.email, password: form.password });
+      console.log('Login success:', data);
+      localStorage.setItem('token', data.token); // store token
+      navigate('/dashboard'); // redirect to dashboard
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Login error');
+    }
+  };
+
+  // ============================
+  // SOCIAL LOGIN HANDLERS
+  // ============================
+  const handleGoogleLogin = async () => {
+    try {
+      alert('Google login pending implementation');
+      // const data = await loginGoogle(idToken);
+      // localStorage.setItem('token', data.token);
+      // navigate('/dashboard');
+    } catch (err: any) {
+      alert(err.message || 'Google login error');
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    try {
+      alert('Facebook login pending implementation');
+      // const data = await loginFacebook(accessToken);
+      // localStorage.setItem('token', data.token);
+      // navigate('/dashboard');
+    } catch (err: any) {
+      alert(err.message || 'Facebook login error');
+    }
   };
 
   return (
@@ -56,7 +91,7 @@ export default function Login() {
         <p className="auth-subtitle">Inicia sesión en tu cuenta de Iglú</p>
 
         <form className="auth-card" onSubmit={handleSubmit}>
-          {/* Correo */}
+          {/* EMAIL */}
           <label className="auth-label">
             Correo electrónico
             <div className="auth-input-wrapper">
@@ -73,7 +108,7 @@ export default function Login() {
             </div>
           </label>
 
-          {/* Contraseña */}
+          {/* PASSWORD */}
           <label className="auth-label">
             Contraseña
             <div className="auth-input-wrapper">
@@ -90,7 +125,7 @@ export default function Login() {
             </div>
           </label>
 
-          {/* Recordarme + link */}
+          {/* REMEMBER / FORGOT */}
           <div className="auth-row">
             <label className="auth-remember">
               <input
@@ -103,45 +138,49 @@ export default function Login() {
             </label>
 
             <button
-            type="button"
-            className="auth-link"
-            onClick={() => navigate("/forgot-password")}
+              type="button"
+              className="auth-link"
+              onClick={() => navigate('/forgot-password')}
             >
               ¿Olvidaste tu contraseña?
             </button>
 
           </div>
 
-          {/* Botón principal */}
+          {/* SUBMIT */}
           <button type="submit" className="auth-submit">
             Iniciar Sesión
           </button>
 
-          {/* Separador */}
+          {/* DIVIDER */}
           <div className="auth-divider">
             <span className="auth-divider-line" />
             <span className="auth-divider-text">o continúa con</span>
             <span className="auth-divider-line" />
           </div>
 
-          {/* Botones sociales */}
+          {/* SOCIAL LOGIN */}
           <div className="auth-social-row">
-            <button type="button" className="auth-social auth-social-google">
-              <span className="auth-social-icon">
-                <GoogleIcon />
-              </span>
+            <button
+              type="button"
+              className="auth-social auth-social-google"
+              onClick={handleGoogleLogin}
+            >
+              <span className="auth-social-icon"><GoogleIcon /></span>
               <span>Google</span>
             </button>
 
-            <button type="button" className="auth-social auth-social-facebook">
-              <span className="auth-social-icon">
-                <FacebookIcon />
-              </span>
+            <button
+              type="button"
+              className="auth-social auth-social-facebook"
+              onClick={handleFacebookLogin}
+            >
+              <span className="auth-social-icon"><FacebookIcon /></span>
               <span>Facebook</span>
             </button>
           </div>
 
-          {/* Texto final */}
+          {/* REGISTER LINK */}
           <p className="auth-bottom-text">
             ¿No tienes una cuenta?{' '}
             <button

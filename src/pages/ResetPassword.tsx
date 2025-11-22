@@ -1,26 +1,32 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { resetPassword } from './api';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token') || '';
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [done, setDone] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password.length < 6) return;
-    if (password !== confirm) return;
+    if (password.length < 6) return alert("La contraseña debe tener al menos 6 caracteres.");
+    if (password !== confirm) return alert("Las contraseñas no coinciden.");
 
-    console.log("Nueva contraseña guardada:", password);
+    try {
+      await resetPassword(token, password);
+      setDone(true);
 
-    setDone(true);
-
-    setTimeout(() => {
-      navigate("/login");
-    }, 2000);
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    } catch (err: any) {
+      alert(err.message || "Error al actualizar la contraseña");
+    }
   };
 
   return (

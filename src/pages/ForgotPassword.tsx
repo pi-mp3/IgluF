@@ -1,19 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { recoverPassword } from "./api";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!email.trim()) return;
 
-    console.log("Email enviado a:", email);
-
-    setSent(true);
+    try {
+      await recoverPassword(email);
+      setSent(true);
+    } catch (err: any) {
+      alert(err.message);
+    }
   };
 
   return (
@@ -56,7 +59,6 @@ export default function ForgotPassword() {
               <p className="text-green-600 font-medium">
                 ✔ Enviamos un correo a <strong>{email}</strong>
               </p>
-
               <p className="text-gray-600 mt-1 text-sm">
                 Revisa tu bandeja de entrada.
               </p>
