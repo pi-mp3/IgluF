@@ -1,13 +1,15 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-
 import Header from './components/Header';
 import Footer from './components/Footer';
+import { Routes, Route } from 'react-router-dom';
 
 import Home from './pages/Home';
-import Login from './pages/Login';
 import Register from './pages/Register';
-import DashboardPage from './pages/Dashboard'; // o el nombre que le pusiste
+import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import Profile from './pages/Profile';
+import DashboardPage from './pages/Dashboard'; // ⬅️ IMPORTAR AQUÍ
 
 export default function App() {
   return (
@@ -17,9 +19,12 @@ export default function App() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </main>
 

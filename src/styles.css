@@ -253,6 +253,16 @@ body {
   list-style: disc;
 }
 
+.card-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.card-link:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 768px) {
   .sitemap-grid {
     grid-template-columns: 1fr;

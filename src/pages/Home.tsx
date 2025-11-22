@@ -63,7 +63,10 @@ export default function Home() {
           <div className="card">
             <h3 className="card-title">Perfil</h3>
             <ul className="card-list">
-              <li>Ver perfil</li>
+              <li>
+                <Link to="/profile" className="card-link">
+                Ver perfil
+                </Link></li>
             </ul>
           </div>
         </div>

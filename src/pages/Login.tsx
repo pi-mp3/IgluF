@@ -102,9 +102,14 @@ export default function Login() {
               <span>Recordarme</span>
             </label>
 
-            <button type="button" className="auth-link">
+            <button
+            type="button"
+            className="auth-link"
+            onClick={() => navigate("/forgot-password")}
+            >
               ¿Olvidaste tu contraseña?
             </button>
+
           </div>
 
           {/* Botón principal */}
