@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // ⬅️ AÑADIR Link
 import MeetingExplore from '../widgets/MeetingExplore';
 
 export default function Home() {
@@ -65,8 +65,9 @@ export default function Home() {
             <ul className="card-list">
               <li>
                 <Link to="/profile" className="card-link">
-                Ver perfil
-                </Link></li>
+                  Ver perfil
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
