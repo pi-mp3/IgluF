@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+// src/pages/Dashboard.tsx
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Meeting {
   id: string;
@@ -10,42 +12,46 @@ interface Meeting {
 
 const mockMeetings: Meeting[] = [
   {
-    id: 'ABC123XYZ',
-    date: '14 Nov 2024',
-    time: '14:30',
+    id: "ABC123XYZ",
+    date: "14 Nov 2024",
+    time: "14:30",
     participants: 5,
-    duration: '45 min',
+    duration: "45 min",
   },
   {
-    id: 'DEF456UVW',
-    date: '13 Nov 2024',
-    time: '10:00',
+    id: "DEF456UVW",
+    date: "13 Nov 2024",
+    time: "10:00",
     participants: 3,
-    duration: '30 min',
+    duration: "30 min",
   },
   {
-    id: 'GHI789RST',
-    date: '12 Nov 2024',
-    time: '16:15',
+    id: "GHI789RST",
+    date: "12 Nov 2024",
+    time: "16:15",
     participants: 6,
-    duration: '60 min',
+    duration: "60 min",
   },
 ];
 
-export default function Dashboard() {
-  const [joinId, setJoinId] = useState('');
+export default function DashboardPage() {
+  const [joinId, setJoinId] = useState("");
+  const navigate = useNavigate();
+
+  const generateRandomId = () => {
+    // ID simple mock, luego se reemplaza por el ID real del backend
+    return Math.random().toString(36).substring(2, 9).toUpperCase();
+  };
 
   const handleCreateMeeting = () => {
-    // Luego se conectará con backend / socket
-    alert('Aquí iría la lógica para crear una nueva reunión 🙂');
+    const id = generateRandomId();
+    navigate(`/meeting/${id}`);
   };
 
   const handleJoinMeeting = () => {
-    if (!joinId.trim()) {
-      alert('Ingresa un ID de reunión.');
-      return;
-    }
-    alert(`Unirse a la reunión con ID: ${joinId}`);
+    const trimmed = joinId.trim();
+    if (!trimmed) return;
+    navigate(`/meeting/${trimmed}`);
   };
 
   const handleCopyId = (id: string) => {
@@ -64,9 +70,7 @@ export default function Dashboard() {
         <header className="dashboard-header">
           <div>
             <h1 className="dashboard-title">Panel de Control</h1>
-            <p className="dashboard-subtitle">
-              Crea o únete a una reunión
-            </p>
+            <p className="dashboard-subtitle">Crea o únete a una reunión</p>
           </div>
         </header>
 
@@ -120,6 +124,7 @@ export default function Dashboard() {
               type="button"
               className="dashboard-secondary-btn"
               onClick={handleJoinMeeting}
+              disabled={!joinId.trim()}
             >
               Unirse Ahora
             </button>
@@ -140,7 +145,7 @@ export default function Dashboard() {
                   <div>
                     <div className="meeting-id">ID: {m.id}</div>
                     <div className="meeting-meta">
-                      {m.date} · {m.time} · {m.participants} participantes ·{' '}
+                      {m.date} · {m.time} · {m.participants} participantes ·{" "}
                       {m.duration}
                     </div>
                   </div>
