@@ -1,3 +1,4 @@
+// src/api/api.ts (o donde esté tu api.ts)
 import { http } from '../api/http';
 
 /**
@@ -20,9 +21,12 @@ export interface LoginData {
 }
 
 /**
- * Registers a new user
+ * Registers a new user.
+ * Calls your backend endpoint /auth/register.
+ *
  * @param userData - Object containing firstName, lastName, age, email, password
- * @returns Response data from backend
+ * @returns The backend response data, may include authUid, id, message.
+ * @throws Error if registration fails.
  */
 export const registerUser = async (userData: RegisterData) => {
   try {
@@ -34,9 +38,11 @@ export const registerUser = async (userData: RegisterData) => {
 };
 
 /**
- * Logs in a user manually
+ * Logs in a user manually via email and password.
+ *
  * @param credentials - Object containing email and password
- * @returns Response data from backend
+ * @returns Response data from backend including token
+ * @throws Error if login fails.
  */
 export const loginUser = async (credentials: LoginData) => {
   try {
@@ -48,13 +54,15 @@ export const loginUser = async (credentials: LoginData) => {
 };
 
 /**
- * Logs in a user with Google OAuth
+ * Logs in a user with Google OAuth.
+ *
  * @param idToken - Google ID token obtained from frontend
  * @returns Response data from backend
+ * @throws Error if Google login fails.
  */
 export const loginGoogle = async (idToken: string) => {
   try {
-    const res = await http.post('/auth/login/google', { idToken }); // fixed route
+    const res = await http.post('/auth/login/google', { idToken });
     return res.data;
   } catch (err: any) {
     throw new Error(err.response?.data?.message || 'Error logging in with Google');
@@ -62,13 +70,15 @@ export const loginGoogle = async (idToken: string) => {
 };
 
 /**
- * Logs in a user with Facebook OAuth
+ * Logs in a user with Facebook OAuth.
+ *
  * @param accessToken - Facebook access token obtained from frontend
  * @returns Response data from backend
+ * @throws Error if Facebook login fails.
  */
 export const loginFacebook = async (accessToken: string) => {
   try {
-    const res = await http.post('/auth/login/facebook', { accessToken }); // fixed route
+    const res = await http.post('/auth/login/facebook', { accessToken });
     return res.data;
   } catch (err: any) {
     throw new Error(err.response?.data?.message || 'Error logging in with Facebook');

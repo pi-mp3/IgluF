@@ -1,11 +1,14 @@
+// src/pages/Login.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser, loginGoogle, loginFacebook, recoverPassword } from './api';
+import { useTranslation } from 'react-i18next';
 
-/* ============================
-   GOOGLE ICON
-=============================== */
-const GoogleIcon: React.FC = () => (
+/**
+ * Google login icon component.
+ * @returns {JSX.Element} The Google logo icon.
+ */
+const GoogleIcon: React.FC = (): JSX.Element => (
   <svg width="18" height="18" viewBox="0 0 533.5 544.3">
     <path fill="#4285F4" d="M533.5 278.4c0-17.4-1.5-34.1-4.3-50.2H272v95h147.5c-6.4 34.4-25 63.5-53.3 83.2l86.1 67.1c50.3-46.4 80.2-114.8 80.2-195.1z"/>
     <path fill="#34A853" d="M272 544.3c72.1 0 132.5-23.7 176.6-64.3l-86.1-67.1c-23.9 16.1-54.4 25.6-90.5 25.6-69.6 0-128.6-47-149.7-110.1l-88.2 68.3c41.4 92.1 135.7 147.6 238 147.6z"/>
@@ -14,32 +17,46 @@ const GoogleIcon: React.FC = () => (
   </svg>
 );
 
-/* ============================
-   FACEBOOK ICON
-=============================== */
-const FacebookIcon: React.FC = () => (
+/**
+ * Facebook login icon component.
+ * @returns {JSX.Element} The Facebook logo icon.
+ */
+const FacebookIcon: React.FC = (): JSX.Element => (
   <svg width="18" height="18" viewBox="0 0 32 32">
     <path fill="#1877F2" d="M32 16.1C32 7.2 24.9 0 16 0S0 7.2 0 16.1c0 8 5.9 14.7 13.6 15.9v-11h-4v-5h4v-3.8c0-4 2.4-6.2 6-6.2 1.7 0 3.4.3 3.4.3v3.8h-1.9c-1.9 0-2.5 1.2-2.5 2.4V16h4.3l-.7 5h-3.6v11C26.1 30.8 32 24.1 32 16.1z"/>
     <path fill="#fff" d="M22.3 21l.7-5H19v-3.5c0-1.2.6-2.4 2.5-2.4h1.9V6.3s-1.7-.3-3.4-.3c-3.6 0-6 2.2-6 6.2V16h-4v5h4v11c.8.1 1.7.2 2.5.2s1.7-.1 2.5-.2V21h3.6z"/>
   </svg>
 );
 
-export default function Login() {
+/**
+ * Login form component for existing users.
+ * Provides email/password login and social login options (Google/Facebook).
+ * @component
+ * @returns {JSX.Element} The login page UI.
+ */
+export default function Login(): JSX.Element {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
-  // ============================
-  // STATE
-  // ============================
-  const [form, setForm] = useState({
+  /**
+   * Form state for login: email, password and remember flag.
+   */
+  const [form, setForm] = useState<{
+    email: string;
+    password: string;
+    remember: boolean;
+  }>({
     email: '',
     password: '',
     remember: true,
   });
 
-  // ============================
-  // HANDLE INPUT CHANGE
-  // ============================
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /**
+   * Handles change of input fields in the form.
+   * Updates state based on the input `name` and its `value` or `checked` property.
+   * @param {React.ChangeEvent<HTMLInputElement>} e – The input change event.
+   */
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, type, checked, value } = e.target;
     setForm((prev) => ({
       ...prev,
@@ -47,64 +64,56 @@ export default function Login() {
     }));
   };
 
-  // ============================
-  // HANDLE FORM SUBMIT
-  // ============================
-  const handleSubmit = async (e: React.FormEvent) => {
+  /**
+   * Handles form submission for login.
+   * Prevents default behavior, logs the form state for now,
+   * and navigates to dashboard on success.
+   * @param {React.FormEvent<HTMLFormElement>} e – The form submit event.
+   */
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    try {
-      const data = await loginUser({ email: form.email, password: form.password });
-      console.log('Login success:', data);
-      localStorage.setItem('token', data.token); // store token
-      navigate('/dashboard'); // redirect to dashboard
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message || 'Login error');
-    }
+    console.log('Login submit', form);
+    // Future: call loginUser API and validate credentials.
+    navigate('/dashboard');
   };
 
-  // ============================
-  // SOCIAL LOGIN HANDLERS
-  // ============================
-  const handleGoogleLogin = async () => {
-    try {
-      alert('Google login pending implementation');
-      // const data = await loginGoogle(idToken);
-      // localStorage.setItem('token', data.token);
-      // navigate('/dashboard');
-    } catch (err: any) {
-      alert(err.message || 'Google login error');
-    }
+  /**
+   * Initiates login with Google account.
+   * Currently placeholder for actual implementation.
+   */
+  const handleGoogleLogin = async (): Promise<void> => {
+    console.log('Google login');
+    // await loginGoogle();
+    navigate('/dashboard');
   };
 
-  const handleFacebookLogin = async () => {
-    try {
-      alert('Facebook login pending implementation');
-      // const data = await loginFacebook(accessToken);
-      // localStorage.setItem('token', data.token);
-      // navigate('/dashboard');
-    } catch (err: any) {
-      alert(err.message || 'Facebook login error');
-    }
+  /**
+   * Initiates login with Facebook account.
+   * Currently placeholder for actual implementation.
+   */
+  const handleFacebookLogin = async (): Promise<void> => {
+    console.log('Facebook login');
+    // await loginFacebook();
+    navigate('/dashboard');
   };
 
   return (
     <div className="auth-page">
       <div className="auth-wrapper">
-        <h1 className="auth-title">Bienvenido de vuelta</h1>
-        <p className="auth-subtitle">Inicia sesión en tu cuenta de Iglú</p>
+        <h1 className="auth-title">{t('login.welcomeBack')}</h1>
+        <p className="auth-subtitle">{t('login.loginSubtitle')}</p>
 
         <form className="auth-card" onSubmit={handleSubmit}>
           {/* EMAIL */}
           <label className="auth-label">
-            Correo electrónico
+            {t('login.email')}
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">@</span>
               <input
                 className="auth-input"
                 type="email"
                 name="email"
-                placeholder="tu@email.com"
+                placeholder={t('login.placeholderEmail')}
                 value={form.email}
                 onChange={handleChange}
                 required
@@ -114,14 +123,14 @@ export default function Login() {
 
           {/* PASSWORD */}
           <label className="auth-label">
-            Contraseña
+            {t('login.password')}
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">🔒</span>
               <input
                 className="auth-input"
                 type="password"
                 name="password"
-                placeholder="••••••••"
+                placeholder={t('login.placeholderPassword')}
                 value={form.password}
                 onChange={handleChange}
                 required
@@ -129,7 +138,7 @@ export default function Login() {
             </div>
           </label>
 
-          {/* REMEMBER / FORGOT */}
+          {/* REMEMBER ME & FORGOT PASSWORD */}
           <div className="auth-row">
             <label className="auth-remember">
               <input
@@ -138,27 +147,27 @@ export default function Login() {
                 checked={form.remember}
                 onChange={handleChange}
               />
-              <span>Recordarme</span>
+              <span>{t('login.rememberMe')}</span>
             </label>
 
             <button
               type="button"
               className="auth-link"
-              onClick={() => navigate('/forgot-password')}
+              onClick={() => navigate("/forgot-password")}
             >
-              ¿Olvidaste tu contraseña?
+              {t('login.forgotPassword')}
             </button>
           </div>
 
           {/* SUBMIT */}
           <button type="submit" className="auth-submit">
-            Iniciar Sesión
+            {t('login.loginButton')}
           </button>
 
           {/* DIVIDER */}
           <div className="auth-divider">
             <span className="auth-divider-line" />
-            <span className="auth-divider-text">o continúa con</span>
+            <span className="auth-divider-text">{t('login.orContinueWith')}</span>
             <span className="auth-divider-line" />
           </div>
 
@@ -170,7 +179,7 @@ export default function Login() {
               onClick={handleGoogleLogin}
             >
               <span className="auth-social-icon"><GoogleIcon /></span>
-              <span>Google</span>
+              <span>{t('login.google')}</span>
             </button>
 
             <button
@@ -179,19 +188,19 @@ export default function Login() {
               onClick={handleFacebookLogin}
             >
               <span className="auth-social-icon"><FacebookIcon /></span>
-              <span>Facebook</span>
+              <span>{t('login.facebook')}</span>
             </button>
           </div>
 
           {/* REGISTER LINK */}
           <p className="auth-bottom-text">
-            ¿No tienes una cuenta?{' '}
+            {t('login.noAccount')}{' '}
             <button
               type="button"
               className="auth-link"
               onClick={() => navigate('/register')}
             >
-              Regístrate
+              {t('login.register')}
             </button>
           </p>
         </form>

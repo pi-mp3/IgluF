@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { recoverPassword } from "./api";
 
+
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -77,3 +78,5 @@ export default function ForgotPassword() {
     </div>
   );
 }
+
+
