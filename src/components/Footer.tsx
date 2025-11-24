@@ -1,22 +1,49 @@
-import React from 'react'
-export default function Footer(){
+import React from 'react';
+
+export default function Footer() {
   return (
-    <footer className="bg-teal-800 text-white mt-12">
-      <div className="max-w-6xl mx-auto p-8 grid md:grid-cols-3 gap-6">
-        <div>
-          <h3 className="font-semibold">Iglú</h3>
-          <p className="mt-2 text-sm">Plataforma de videoconferencias en tiempo real con chat, audio y video.</p>
+    <footer className="footer">
+      <div className="footer-inner">
+        {/* Columna izquierda: marca + descripción */}
+        <div className="footer-brand">
+          <div className="footer-logo-wrapper">
+            <img src="/logo.png" alt="Iglú" className="footer-logo" />
+          </div>
+
+          <p className="footer-desc">
+            Plataforma de videoconferencias en tiempo real con chat, audio y video de alta calidad.
+          </p>
+
+          <div className="footer-icons">
+            <span className="footer-icon" aria-hidden="true">🔔</span>
+            <span className="footer-icon" aria-hidden="true">✉️</span>
+          </div>
         </div>
-        <div>
-          <h4 className="font-semibold">Producto</h4>
-          <ul className="mt-2 text-sm"><li>Características</li><li>Precios</li></ul>
+
+        {/* Columna central: Producto */}
+        <div className="footer-column">
+          <h4 className="footer-title">Producto</h4>
+          <ul className="footer-list">
+            <li>Características</li>
+            <li>Precios</li>
+            <li>Documentación</li>
+          </ul>
         </div>
-        <div>
-          <h4 className="font-semibold">Empresa</h4>
-          <ul className="mt-2 text-sm"><li>Sobre Nosotros</li><li>Contacto</li></ul>
+
+        {/* Columna derecha: Empresa */}
+        <div className="footer-column">
+          <h4 className="footer-title">Empresa</h4>
+          <ul className="footer-list">
+            <li>Sobre Nosotros</li>
+            <li>Contacto</li>
+            <li>Privacidad</li>
+          </ul>
         </div>
       </div>
-      <div className="bg-teal-900 text-center p-4 text-sm">© 2025 Iglú. Plataforma de videoconferencias.</div>
+
+      <div className="footer-bottom">
+        <span>© 2025 Iglú. Plataforma de videoconferencias.</span>
+      </div>
     </footer>
-  )
+  );
 }

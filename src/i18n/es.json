@@ -1,0 +1,42 @@
+{
+  "register": {
+    "createAccount": "Crear cuenta",
+    "fillForm": "Por favor completa el formulario",
+    "firstName": "Nombre",
+    "placeholderFirstName": "Escribe tu nombre",
+    "lastName": "Apellido",
+    "placeholderLastName": "Escribe tu apellido",
+    "age": "Edad",
+    "placeholderAge": "Escribe tu edad",
+    "email": "Correo electrónico",
+    "placeholderEmail": "correo@ejemplo.com",
+    "password": "Contraseña",
+    "placeholderPassword": "Escribe tu contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "placeholderConfirmPassword": "Repite tu contraseña",
+    "acceptTerms": "Acepto los términos y condiciones",
+    "termsAndConditions": "Términos y Condiciones", 
+    "mustAcceptTerms": "Debes aceptar los términos para registrarte",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "registerButton": "Registrarse",
+    "alreadyHaveAccount": "¿Ya tienes cuenta?",
+    "login": "Iniciar sesión"
+  },
+  "login": {
+    "welcomeBack": "Bienvenido de nuevo",
+    "loginSubtitle": "Inicia sesión en tu cuenta Iglú",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "placeholderEmail": "Introduce tu correo",
+    "placeholderPassword": "Introduce tu contraseña",
+    "rememberMe": "Recordarme",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "loginButton": "Iniciar sesión",
+    "orContinueWith": "o continuar con",
+    "google": "Google",
+    "facebook": "Facebook",
+    "noAccount": "¿No tienes una cuenta?",
+    "register": "Regístrate"
+  }
+}
+

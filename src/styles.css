@@ -1,8 +1,1148 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-:root{--teal: #114B4F}
-.btn-primary{background:var(--teal);color:white;padding:0.75rem 1rem;border-radius:8px}
-.btn-outline{border:2px solid var(--teal);padding:0.6rem 1rem;border-radius:8px}
-.card{background:#f8fafb;padding:1.25rem;border-radius:12px}
-.input{width:100%;padding:0.6rem;border:1px solid #e6e6e6;border-radius:8px}
+
+/* ------------------------------ */
+/* 🟦 Variables y base */
+/* ------------------------------ */
+:root {
+  --teal: #0c5a64;
+  --teal-soft: #0f6f7b;
+  --bg-page: #f5fafb;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: var(--bg-page);
+  color: #0f172a;
+}
+
+/* ------------------------------ */
+/* 🟦 HEADER / NAVBAR */
+/* ------------------------------ */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Logo + texto "Iglú" */
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.header-logo img {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+}
+
+.header-logo span {
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+/* Contenedor de los botones de la derecha */
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Botón tipo enlace: "Iniciar Sesión" en el header */
+.btn-link {
+  border: none;
+  background: transparent;
+  padding: 0.35rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #0f172a;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-link:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+/* En el header, el .btn-outline se ve teal sobre fondo blanco */
+.header .btn-outline {
+  border-radius: 9999px;
+  border: 1px solid var(--teal);
+  padding: 0.45rem 1.3rem;
+  background: #ffffff;
+  color: var(--teal);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease,
+    box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.header .btn-outline:hover {
+  background: var(--teal);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.25);
+}
+
+/* ------------------------------ */
+/* 🟦 HERO */
+/* ------------------------------ */
+.hero {
+  background: radial-gradient(circle at top left, var(--teal-soft), var(--teal));
+  color: #f9fafb;
+  padding: 4.5rem 1.5rem 5rem;
+}
+
+.hero-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+.hero-eyebrow {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  opacity: 0.85;
+}
+
+.hero-title {
+  margin-top: 0.9rem;
+  font-size: clamp(2.4rem, 3.2vw, 3.1rem);
+  line-height: 1.1;
+  font-weight: 600;
+}
+
+.hero-subtitle {
+  margin-top: 1.1rem;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 34rem;
+}
+
+.hero-actions {
+  margin-top: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.hero-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 2.2rem;
+  box-shadow: 0 18px 45px rgba(5, 30, 35, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-logo {
+  max-width: 220px;
+  width: 100%;
+}
+
+/* ------------------------------ */
+/* 🟦 Botones reutilizables */
+/* ------------------------------ */
+.btn-primary {
+  background: #ffffff;
+  color: var(--teal);
+  padding: 0.8rem 1.8rem;
+  border-radius: 999px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  filter: brightness(0.96);
+}
+
+/* Versión general (hero): borde blanco sobre fondo teal */
+.btn-outline {
+  background: transparent;
+  color: #ffffff;
+  padding: 0.8rem 1.8rem;
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ------------------------------ */
+/* 🟦 SECTIONS */
+/* ------------------------------ */
+.section {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* ------------------------------ */
+/* 🟦 MAPA DEL SITIO */
+/* ------------------------------ */
+.sitemap-grid {
+  margin-top: 1.75rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  background: #ffffff;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+.card-title {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.card-list {
+  margin: 0.35rem 0 0;
+  padding-left: 1.3rem;
+  font-size: 0.95rem;
+  list-style: disc;
+}
+
+.card-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.card-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .sitemap-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ------------------------------ */
+/* 🟦 EXPLORAR SALA */
+/* ------------------------------ */
+.explore-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.8rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.explore-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1.1rem;
+}
+
+.explore-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+.explore-video,
+.explore-chat {
+  border-radius: 12px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 190px;
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+@media (max-width: 768px) {
+  .explore-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ------------------------------ */
+/* 🟦 Inputs genéricos */
+/* ------------------------------ */
+.input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+/* ------------------------------ */
+/* 🟦 FOOTER */
+/* ------------------------------ */
+.footer {
+  margin-top: 3rem;
+  background: #0b4a51;
+  color: #e5f3f5;
+}
+
+.footer-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 2.8rem 1.5rem 2.2rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr));
+  gap: 2.5rem;
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.footer-logo-wrapper {
+  height: 40px;
+  width: 40px;
+  border-radius: 10px;
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-logo {
+  height: 24px;
+  width: auto;
+}
+
+.footer-desc {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 26rem;
+}
+
+.footer-icons {
+  display: flex;
+  gap: 0.9rem;
+  margin-top: 0.4rem;
+  font-size: 1.1rem;
+}
+
+.footer-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  width: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(229, 243, 245, 0.35);
+}
+
+.footer-column {
+  font-size: 0.95rem;
+}
+
+.footer-title {
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.footer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.footer-list li + li {
+  margin-top: 0.35rem;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(148, 163, 184, 0.4);
+  margin-top: 0.5rem;
+  padding: 0.9rem 1.5rem 1.3rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #cbd5f5;
+}
+
+/* Responsive footer */
+@media (max-width: 900px) {
+  .footer-inner {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ------------------------------ */
+/* 🟦 AUTH / LOGIN & REGISTER */
+/* ------------------------------ */
+.auth-page {
+  background: var(--bg-page);
+}
+
+.auth-wrapper {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 3.5rem 1.5rem 4.5rem;
+}
+
+.auth-title {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.auth-subtitle {
+  text-align: center;
+  margin-top: 0.4rem;
+  font-size: 0.98rem;
+  color: #6b7280;
+}
+
+.auth-card {
+  margin: 2.2rem auto 0;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 2.4rem 2.6rem;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+}
+
+/* Labels e inputs */
+.auth-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.auth-label + .auth-label {
+  margin-top: 1.3rem;
+}
+
+.auth-input-wrapper {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: #f9fafb;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  padding: 0.4rem 0.8rem;
+}
+
+.auth-input-icon {
+  font-size: 1rem;
+  color: #9ca3af;
+}
+
+.auth-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.95rem;
+  padding: 0.45rem 0;
+  flex: 1;
+  color: #111827;
+}
+
+.auth-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Recordarme + link */
+.auth-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.88rem;
+}
+
+.auth-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #4b5563;
+}
+
+.auth-remember input {
+  accent-color: var(--teal);
+}
+
+.auth-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.88rem;
+  color: #0c5a64;
+  cursor: pointer;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* Botón principal */
+.auth-submit {
+  margin-top: 1.6rem;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--teal);
+  border: none;
+  color: #f9fafb;
+  padding: 0.85rem 1.2rem;
+  font-size: 0.98rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.auth-submit:hover {
+  filter: brightness(0.96);
+}
+
+/* Separador */
+.auth-divider {
+  margin-top: 1.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.auth-divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.auth-divider-text {
+  white-space: nowrap;
+}
+
+/* Botones sociales */
+.auth-social-row {
+  margin-top: 1.4rem;
+  display: flex;
+  gap: 0.9rem;
+}
+
+.auth-social {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.auth-social:hover {
+  background: #f9fafb;
+}
+
+.auth-social-icon {
+  height: 20px;
+  width: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+/* Personalización por proveedor */
+.auth-social-google .auth-social-icon {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.auth-social-facebook .auth-social-icon {
+  background: #1877f2;
+  color: #ffffff;
+}
+
+/* Texto final */
+.auth-bottom-text {
+  margin-top: 1.6rem;
+  text-align: center;
+  font-size: 0.88rem;
+  color: #6b7280;
+}
+
+/* Responsive auth */
+@media (max-width: 640px) {
+  .auth-card {
+    padding: 2rem 1.6rem;
+  }
+}
+
+/* Ajuste del bloque de términos en registro */
+.auth-terms-wrapper {
+  margin-top: 1.3rem;
+}
+
+.auth-terms {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.auth-terms input {
+  margin-top: 0.15rem;
+  accent-color: var(--teal);
+}
+/* ------------------------------ */
+/* 🟦 DASHBOARD / PANEL DE CONTROL */
+/* ------------------------------ */
+.dashboard-page {
+  background: var(--bg-page);
+}
+
+.dashboard-wrapper {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.8rem;
+}
+
+.dashboard-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.dashboard-subtitle {
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+/* Grid superior: crear / unirse */
+.dashboard-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.4rem;
+}
+
+.dashboard-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.6rem 1.8rem 1.8rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-card-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1.4rem;
+}
+
+.dashboard-icon-circle {
+  height: 40px;
+  width: 40px;
+  border-radius: 14px;
+  background: #eef7f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-icon {
+  font-size: 1.2rem;
+}
+
+.dashboard-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-card-text {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.dashboard-primary-btn {
+  margin-top: 0.6rem;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--teal);
+  color: #f9fafb;
+  border: none;
+  padding: 0.8rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dashboard-primary-btn:hover {
+  filter: brightness(0.96);
+}
+
+.dashboard-field-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #4b5563;
+  margin-bottom: 0.35rem;
+}
+
+.dashboard-input {
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.8rem;
+}
+
+.dashboard-input::placeholder {
+  color: #9ca3af;
+}
+
+.dashboard-secondary-btn {
+  width: 100%;
+  border-radius: 999px;
+  border: none;
+  background: #e5e7eb;
+  color: #6b7280;
+  padding: 0.8rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dashboard-secondary-btn:hover {
+  filter: brightness(0.97);
+}
+
+/* Reuniones recientes */
+.dashboard-recent {
+  margin-top: 0.5rem;
+}
+
+.dashboard-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.dashboard-meetings-list {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  padding: 0.5rem 0;
+}
+
+.meeting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 1.4rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.meeting-row:first-child {
+  border-top: none;
+}
+
+.meeting-main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.meeting-avatar {
+  height: 36px;
+  width: 36px;
+  border-radius: 999px;
+  background: #eef7f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.meeting-id {
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.meeting-meta {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.meeting-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.meeting-ia-btn {
+  border-radius: 999px;
+  border: 1px solid #6366f1;
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.meeting-copy-btn {
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.meeting-ia-btn:hover,
+.meeting-copy-btn:hover {
+  filter: brightness(0.97);
+}
+
+/* Responsive dashboard */
+@media (max-width: 900px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .meeting-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .meeting-actions {
+    align-self: flex-end;
+  }
+}
+/* ------------------------------ */
+/* 🟦 MEETING ROOM / VISTA REUNIÓN */
+/* ------------------------------ */
+
+.meeting-page {
+  background: #020617;
+  color: #e5e7eb;
+  /* ocupa todo el área entre el header y el borde inferior */
+  min-height: calc(100vh - 64px); /* ajusta 64px si tu header mide distinto */
+  display: flex;
+}
+
+.meeting-wrapper {
+  flex: 1; /* usa todo el espacio dentro de .meeting-page */
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Topbar */
+
+.meeting-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: #e5e7eb;
+}
+
+.meeting-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+.meeting-title {
+  font-weight: 500;
+}
+
+/* Layout principal (videos + sidebar) */
+
+.meeting-main {
+  margin-top: 1.25rem;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1.25fr);
+  gap: 1.25rem;
+
+  /* que crezca y empuje el toolbar hacia abajo */
+  flex: 1;
+  min-height: 0; /* necesario para que el chat pueda hacer scroll interno */
+}
+
+/* Grid de participantes */
+
+.meeting-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(140px, 1fr);
+  gap: 0.9rem;
+}
+
+.meeting-tile {
+  background: #020617;
+  border-radius: 18px;
+  border: 1px solid #1f2937;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.meeting-avatar-circle {
+  height: 42px;
+  width: 42px;
+  border-radius: 999px;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #e5e7eb;
+}
+
+.meeting-participant-label {
+  margin-top: auto;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+/* Placeholders vacíos */
+
+.meeting-tile-empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.meeting-empty-icon {
+  font-size: 1.8rem;
+  opacity: 0.45;
+}
+
+/* Sidebar / Chat */
+
+.meeting-sidebar {
+  background: #020617;
+  border-radius: 18px;
+  border: 1px solid #1f2937;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Tabs */
+
+.meeting-tabs {
+  display: flex;
+  border-bottom: 1px solid #111827;
+}
+
+.meeting-tab {
+  flex: 1;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.meeting-tab--active {
+  color: #e5e7eb;
+  border-bottom: 2px solid #22c55e;
+}
+
+/* Lista de mensajes */
+
+.meeting-chat-list {
+  flex: 1;
+  padding: 0.9rem 1rem;
+  overflow-y: auto; /* scroll solo dentro del chat */
+}
+
+.meeting-chat-message + .meeting-chat-message {
+  margin-top: 0.6rem;
+}
+
+.meeting-chat-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.meeting-chat-author {
+  font-weight: 500;
+}
+
+.meeting-chat-text {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+}
+
+/* Input de chat */
+
+.meeting-chat-input-wrapper {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.6rem 0.8rem 0.7rem;
+  border-top: 1px solid #111827;
+}
+
+.meeting-chat-input {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.9rem;
+}
+
+.meeting-chat-input::placeholder {
+  color: #6b7280;
+}
+
+.meeting-chat-send {
+  border-radius: 999px;
+  border: none;
+  background: #22c55e;
+  color: #020617;
+  font-size: 0.85rem;
+  padding: 0 0.8rem;
+  cursor: pointer;
+}
+
+/* Toolbar inferior */
+
+.meeting-toolbar {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.meeting-toolbar-center {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: #020617;
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #1f2937;
+}
+
+.meeting-control-btn {
+  height: 38px;
+  min-width: 38px;
+  border-radius: 999px;
+  border: none;
+  background: #0b1120;
+  color: #e5e7eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.meeting-control-ia {
+  padding: 0 1rem;
+  background: #1d4ed8;
+}
+
+.meeting-control-hangup {
+  background: #ef4444;
+}
+
+/* Botón "Unirse Ahora" deshabilitado (dashboard) */
+
+.dashboard-secondary-btn:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Responsive meeting */
+
+@media (max-width: 1024px) {
+  .meeting-main {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,32 +1,82 @@
-import React from 'react'
-import MeetingExplore from '../widgets/MeetingExplore'
-export default function Home(){
+import React from 'react';
+import { useNavigate, Link } from 'react-router-dom'; // ⬅️ AÑADIR Link
+import MeetingExplore from '../widgets/MeetingExplore';
+
+export default function Home() {
+  const navigate = useNavigate();
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <section className="grid md:grid-cols-2 gap-6 items-center">
-        <div>
-          <h1 className="text-3xl font-semibold">Videoconferencias que conectan equipos</h1>
-          <p className="mt-4 text-lg">Iglú es la plataforma de videoconferencias en tiempo real con chat, audio y video.</p>
-          <div className="mt-6 flex gap-4">
-            <button className="btn-primary">Comenzar Gratis</button>
-            <button className="btn-outline">Iniciar Sesión</button>
+    <>
+      {/* HERO */}
+      <section className="hero">
+        <div className="hero-inner">
+          <div>
+            <p className="hero-eyebrow">Videoconferencias que conectan equipos</p>
+            <h1 className="hero-title">Videoconferencias que conectan equipos</h1>
+            <p className="hero-subtitle">
+              Iglú es la plataforma de videoconferencias en tiempo real con chat,
+              audio y video de alta calidad. Simple, rápida y confiable.
+            </p>
+
+            <div className="hero-actions">
+              <button
+                className="btn-primary"
+                onClick={() => navigate('/register')}
+              >
+                Comenzar Gratis
+              </button>
+              <button
+                className="btn-outline"
+                onClick={() => navigate('/login')}
+              >
+                Iniciar Sesión
+              </button>
+            </div>
+          </div>
+
+          <div className="hero-card">
+            <img src="/logo.png" alt="Iglú Logo" className="hero-logo" />
           </div>
         </div>
-        <div className="p-6 bg-white rounded shadow">
-          <img src="/logo.png" alt="Iglú Logo" className="mx-auto" />
+      </section>
+
+      {/* MAPA DEL SITIO */}
+      <section className="section">
+        <h2 className="section-title">Mapa del Sitio</h2>
+
+        <div className="sitemap-grid">
+          <div className="card">
+            <h3 className="card-title">Autenticación</h3>
+            <ul className="card-list">
+              <li>Registro</li>
+              <li>Iniciar sesión</li>
+            </ul>
+          </div>
+
+          <div className="card">
+            <h3 className="card-title">Reuniones</h3>
+            <ul className="card-list">
+              <li>Crear reunión</li>
+            </ul>
+          </div>
+
+          <div className="card">
+            <h3 className="card-title">Perfil</h3>
+            <ul className="card-list">
+              <li>
+                <Link to="/profile" className="card-link">
+                  Ver perfil
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
       </section>
-      <section className="mt-12">
-        <h2 className="text-center text-xl font-medium">Mapa del Sitio</h2>
-        <div className="grid md:grid-cols-3 gap-4 mt-6">
-          <div className="card">Autenticación<ul className="mt-2 list-disc ml-5"><li>Registro</li><li>Iniciar sesión</li></ul></div>
-          <div className="card">Reuniones<ul className="mt-2 list-disc ml-5"><li>Crear reunión</li></ul></div>
-          <div className="card">Perfil<ul className="mt-2 list-disc ml-5"><li>Ver perfil</li></ul></div>
-        </div>
-      </section>
-      <section className="mt-12">
+
+      {/* EXPLORAR SALA */}
+      <section className="section">
         <MeetingExplore />
       </section>
-    </div>
-  )
+    </>
+  );
 }

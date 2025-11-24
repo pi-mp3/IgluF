@@ -1,0 +1,25 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Dist
+dist/
+dist-ssr/
+*.local
+
+# Vite
+.vite/
+vite.config.local.*
+
+# Env files
+.env
+.env.*.local
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+
+# Logs
+*.log
+logs/
