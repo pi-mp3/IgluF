@@ -1,4 +1,3 @@
-// src/pages/Login.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser, loginGoogle, loginFacebook, recoverPassword } from './api';
@@ -29,8 +28,8 @@ const FacebookIcon: React.FC = (): JSX.Element => (
 );
 
 /**
- * Login form component for existing users.
- * Provides email/password login and social login options (Google/Facebook).
+ * Login page component for existing users.
+ * Handles email/password login and social login integrations.
  * @component
  * @returns {JSX.Element} The login page UI.
  */
@@ -39,22 +38,17 @@ export default function Login(): JSX.Element {
   const { t } = useTranslation();
 
   /**
-   * Form state for login: email, password and remember flag.
+   * Form state: email, password and remember flag.
    */
-  const [form, setForm] = useState<{
-    email: string;
-    password: string;
-    remember: boolean;
-  }>({
+  const [form, setForm] = useState({
     email: '',
     password: '',
     remember: true,
   });
 
   /**
-   * Handles change of input fields in the form.
-   * Updates state based on the input `name` and its `value` or `checked` property.
-   * @param {React.ChangeEvent<HTMLInputElement>} e – The input change event.
+   * Handles input changes and updates the state accordingly.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input event.
    */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, type, checked, value } = e.target;
@@ -65,35 +59,34 @@ export default function Login(): JSX.Element {
   };
 
   /**
-   * Handles form submission for login.
-   * Prevents default behavior, logs the form state for now,
-   * and navigates to dashboard on success.
-   * @param {React.FormEvent<HTMLFormElement>} e – The form submit event.
+   * Handles login form submission.
+   * @param {React.FormEvent<HTMLFormElement>} e - Form submit event.
    */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     console.log('Login submit', form);
-    // Future: call loginUser API and validate credentials.
     navigate('/dashboard');
   };
 
   /**
-   * Initiates login with Google account.
-   * Currently placeholder for actual implementation.
+   * Initiates Google OAuth login by redirecting to the backend route.
+   * This route must match the Google OAuth redirect configuration.
+   * @returns {Promise<void>}
    */
   const handleGoogleLogin = async (): Promise<void> => {
-    console.log('Google login');
-    // await loginGoogle();
-    navigate('/dashboard');
+    try {
+      window.location.href = "http://localhost:5000/api/auth/google";
+    } catch (error) {
+      console.error("Google login error:", error);
+    }
   };
 
   /**
-   * Initiates login with Facebook account.
-   * Currently placeholder for actual implementation.
+   * Initiates Facebook OAuth login (placeholder).
+   * @returns {Promise<void>}
    */
   const handleFacebookLogin = async (): Promise<void> => {
     console.log('Facebook login');
-    // await loginFacebook();
     navigate('/dashboard');
   };
 
@@ -138,7 +131,7 @@ export default function Login(): JSX.Element {
             </div>
           </label>
 
-          {/* REMEMBER ME & FORGOT PASSWORD */}
+          {/* REMEMBER ME & FORGOT */}
           <div className="auth-row">
             <label className="auth-remember">
               <input
@@ -171,7 +164,7 @@ export default function Login(): JSX.Element {
             <span className="auth-divider-line" />
           </div>
 
-          {/* SOCIAL LOGIN */}
+          {/* SOCIAL */}
           <div className="auth-social-row">
             <button
               type="button"
