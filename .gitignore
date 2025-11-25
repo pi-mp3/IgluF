@@ -9,7 +9,36 @@ dist-ssr/
 
 # Vite
 .vite/
+vite.config.local.*# Node
+node_modules/
+npm-debug.log*
+
+# Dist / Build
+dist/
+dist-ssr/
+*.local
+
+# Vite
+.vite/
 vite.config.local.*
+
+# Env files
+.env
+.env.*.local
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Firebase config
+firebaseConfig.js
+firebaseConfig.ts
+
 
 # Env files
 .env

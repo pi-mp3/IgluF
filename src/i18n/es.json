@@ -37,6 +37,22 @@
     "facebook": "Facebook",
     "noAccount": "¿No tienes una cuenta?",
     "register": "Regístrate"
+  },
+  "resetPassword": {
+    "title": "Restablecer Contraseña",
+    "subtitle": "Ingresa una nueva contraseña segura para tu cuenta.",
+    "newPassword": "Nueva Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "saveButton": "Guardar Contraseña",
+    "backToLogin": "← Volver al Login",
+    "success": "✔ Contraseña actualizada",
+    "redirecting": "Redirigiendo al login...",
+    "errors": {
+      "minLength": "La contraseña debe tener al menos 6 caracteres.",
+      "mismatch": "Las contraseñas no coinciden.",
+      "resetFailed": "Error al restablecer la contraseña."
+    }
   }
 }
+
 
