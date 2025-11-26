@@ -35,9 +35,7 @@ vite.config.local.*
 *.log
 logs/
 
-# Firebase config
-firebaseConfig.js
-firebaseConfig.ts
+
 
 
 # Env files
