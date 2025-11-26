@@ -1146,3 +1146,18 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+.dashboard-logout-btn {
+  background: #e63946;
+  color: white;
+  padding: 0.45rem 1.1rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.dashboard-logout-btn:hover {
+  background: #b91c1c;
+}
