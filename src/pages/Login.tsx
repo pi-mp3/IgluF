@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUser, loginGoogle, loginFacebook, recoverPassword } from './api';
 import { useTranslation } from 'react-i18next';
+import { auth } from "../firebaseConfig"; 
 import { useAuth } from "../context/AuthContext";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+} from "firebase/auth";
+
 
 /**
  * Google login icon component.
@@ -28,16 +35,11 @@ const FacebookIcon: React.FC = (): JSX.Element => (
   </svg>
 );
 
-/**
- * Login page component for existing users.
- * Handles email/password login and social login integrations.
- * @component
- * @returns {JSX.Element} The login page UI.
- */
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { login } = useAuth();
+
+  //const { login } = useAuth();
   /**
    * Form state: email, password and remember flag.
    */
@@ -47,10 +49,6 @@ export default function Login(): JSX.Element {
     remember: true,
   });
 
-  /**
-   * Handles input changes and updates the state accordingly.
-   * @param {React.ChangeEvent<HTMLInputElement>} e - Input event.
-   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, type, checked, value } = e.target;
     setForm((prev) => ({
@@ -60,36 +58,57 @@ export default function Login(): JSX.Element {
   };
 
   /**
-   * Handles login form submission.
-   * @param {React.FormEvent<HTMLFormElement>} e - Form submit event.
+   * LOGIN REAL CON FIREBASE (email + contraseña)
    */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+
+    try {
+      await signInWithEmailAndPassword(auth, form.email, form.password);
+      navigate('/dashboard');
+    } catch (error: any) {
+      console.error("ERROR LOGIN:", error);
+
+      if (error.code === "auth/invalid-credential")
+        alert("Correo o contraseña incorrectos.");
+      else if (error.code === "auth/user-not-found")
+        alert("El usuario no existe.");
+      else if (error.code === "auth/wrong-password")
+        alert("Contraseña incorrecta.");
+      else
+        alert("Error al iniciar sesión.");
+    }
     console.log('Login submit', form);
-    login();
+    
     navigate('/dashboard');
   };
 
   /**
-   * Initiates Google OAuth login by redirecting to the backend route.
-   * This route must match the Google OAuth redirect configuration.
-   * @returns {Promise<void>}
+   * LOGIN REAL CON GOOGLE
    */
   const handleGoogleLogin = async (): Promise<void> => {
     try {
-      window.location.href = "http://localhost:5000/api/auth/google";
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      navigate("/dashboard");
     } catch (error) {
       console.error("Google login error:", error);
+      alert("Error al iniciar sesión con Google");
     }
   };
 
   /**
-   * Initiates Facebook OAuth login (placeholder).
-   * @returns {Promise<void>}
+   * LOGIN REAL CON FACEBOOK
    */
   const handleFacebookLogin = async (): Promise<void> => {
-    console.log('Facebook login');
-    navigate('/dashboard');
+    try {
+      const provider = new FacebookAuthProvider();
+      await signInWithPopup(auth, provider);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Facebook login error:", error);
+      alert("Error al iniciar sesión con Facebook");
+    }
   };
 
   return (
@@ -133,7 +152,7 @@ export default function Login(): JSX.Element {
             </div>
           </label>
 
-          {/* REMEMBER ME & FORGOT */}
+          {/* REMEMBER + FORGOT */}
           <div className="auth-row">
             <label className="auth-remember">
               <input
@@ -187,7 +206,7 @@ export default function Login(): JSX.Element {
             </button>
           </div>
 
-          {/* REGISTER LINK */}
+          {/* REGISTER */}
           <p className="auth-bottom-text">
             {t('login.noAccount')}{' '}
             <button

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Header() {
-  const { isAuthenticated, logout } = useAuth();
+  const { user,loading, logout } = useAuth();
 
   return (
     <header className="header">
@@ -14,9 +14,20 @@ export default function Header() {
         </Link>
 
         <nav className="header-nav">
-          {isAuthenticated ? (
+          {user ? (
             <>
-              <span className="user-welcome">Bienvenido 👋</span>
+              <span className="user-welcome">
+                Hola {user.email?.split("@")[0]} 👋
+              </span>
+
+              <Link to="/dashboard" className="btn-link">
+                Reuniones
+              </Link>
+
+              <Link to="/profile" className="btn-outline">
+                Perfil
+              </Link>
+
               <button className="btn-outline" onClick={logout}>
                 Cerrar Sesión
               </button>
@@ -26,6 +37,7 @@ export default function Header() {
               <Link to="/login" className="btn-link">
                 Iniciar Sesión
               </Link>
+
               <Link to="/register" className="btn-outline">
                 Registrarse
               </Link>
