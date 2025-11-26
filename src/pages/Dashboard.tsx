@@ -1,6 +1,8 @@
 // src/pages/Dashboard.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebaseConfig";
 
 interface Meeting {
   id: string;
@@ -34,59 +36,38 @@ const mockMeetings: Meeting[] = [
   },
 ];
 
-/**
- * Dashboard page component.
- * Renders UI to create or join a meeting, and shows recent mock meetings.
- * @returns React element for the dashboard page.
- */
 export default function DashboardPage() {
   const [joinId, setJoinId] = useState("");
   const navigate = useNavigate();
 
-  /**
-   * Generates a random meeting ID.
-   * The generated ID is alphanumeric and in uppercase.
-   * @returns A randomly generated string of 7 characters.
-   */
   const generateRandomId = (): string => {
     return Math.random().toString(36).substring(2, 9).toUpperCase();
   };
 
-  /**
-   * Handles the creation of a new meeting.
-   * Generates a random ID and navigates to the meeting route.
-   */
   const handleCreateMeeting = (): void => {
     const id = generateRandomId();
     navigate(`/meeting/${id}`);
   };
 
-  /**
-   * Handles joining an existing meeting.
-   * Validates the entered ID and navigates to the corresponding meeting.
-   */
   const handleJoinMeeting = (): void => {
     const trimmed = joinId.trim();
     if (!trimmed) return;
     navigate(`/meeting/${trimmed}`);
   };
 
-  /**
-   * Copies the meeting ID to the clipboard and shows a confirmation alert.
-   * @param id - The meeting ID to copy.
-   */
   const handleCopyId = (id: string): void => {
     navigator.clipboard.writeText(id).catch(() => {});
     alert(`Meeting ID ${id} copied to clipboard`);
   };
 
-  /**
-   * Simulates showing an AI summary for a meeting.
-   * Currently uses alert as a placeholder.
-   * @param id - The meeting ID for which the summary is requested.
-   */
   const handleIaSummary = (id: string): void => {
     alert(`Here you would show the AI summary for meeting ${id}`);
+  };
+
+  /** 🔥 BOTÓN DE CERRAR SESIÓN */
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/login");
   };
 
   return (
@@ -97,6 +78,14 @@ export default function DashboardPage() {
             <h1 className="dashboard-title">Control Panel</h1>
             <p className="dashboard-subtitle">Create or join a meeting</p>
           </div>
+
+          {/* 🔥 Botón Logout */}
+          <button
+            className="dashboard-logout-btn"
+            onClick={handleLogout}
+          >
+            Cerrar Sesión
+          </button>
         </header>
 
         <section className="dashboard-main-grid">
