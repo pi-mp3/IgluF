@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser, loginGoogle, loginFacebook, recoverPassword } from './api';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from "../context/AuthContext";
 
 /**
  * Google login icon component.
@@ -36,7 +37,7 @@ const FacebookIcon: React.FC = (): JSX.Element => (
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const { t } = useTranslation();
-
+  const { login } = useAuth();
   /**
    * Form state: email, password and remember flag.
    */
@@ -65,6 +66,7 @@ export default function Login(): JSX.Element {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     console.log('Login submit', form);
+    login();
     navigate('/dashboard');
   };
 

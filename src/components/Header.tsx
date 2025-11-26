@@ -1,25 +1,36 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Header() {
+  const { isAuthenticated, logout } = useAuth();
+
   return (
     <header className="header">
       <div className="header-inner">
-        {/* Logo + nombre */}
         <Link to="/" className="header-logo">
           <img src="/logo.png" alt="Iglú Logo" />
           <span>Iglú</span>
         </Link>
 
-        {/* Botones derecha */}
         <nav className="header-nav">
-          <Link to="/login" className="btn-link">
-            Iniciar Sesión
-          </Link>
-
-          <Link to="/register" className="btn-outline">
-            Registrarse
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <span className="user-welcome">Bienvenido 👋</span>
+              <button className="btn-outline" onClick={logout}>
+                Cerrar Sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn-link">
+                Iniciar Sesión
+              </Link>
+              <Link to="/register" className="btn-outline">
+                Registrarse
+              </Link>
+            </>
+          )}
         </nav>
       </div>
     </header>

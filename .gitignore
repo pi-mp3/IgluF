@@ -10,7 +10,6 @@ dist-ssr/
 # Vite
 .vite/
 vite.config.local.*# Node
-node_modules/
 npm-debug.log*
 
 # Dist / Build
