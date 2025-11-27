@@ -29,7 +29,7 @@ export default function Header() {
           {user ? (
             <>
               {/* Usuario logueado */}
-              <Link to="/dashboard" className="btn-link">
+              <Link to="/dashboard" className="btn-outline">
                 Reuniones
               </Link>
 
@@ -40,7 +40,7 @@ export default function Header() {
           ) : (
             <>
               {/* Usuario NO logueado */}
-              <Link to="/login" className="btn-link">
+              <Link to="/login" className="btn-outline">
                 Iniciar Sesión
               </Link>
 
