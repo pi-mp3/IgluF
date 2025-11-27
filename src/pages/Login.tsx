@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-
-// 🚀 IMPORTS DE FIREBASE
+import { auth } from "../firebaseConfig"; 
+import { useAuth } from "../context/AuthContext";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
   FacebookAuthProvider,
 } from "firebase/auth";
-import { auth } from "../firebaseConfig"; // 👈 IMPORTANTE
+
 
 /**
  * Google login icon component.
@@ -39,6 +39,10 @@ export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  //const { login } = useAuth();
+  /**
+   * Form state: email, password and remember flag.
+   */
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -74,6 +78,9 @@ export default function Login(): JSX.Element {
       else
         alert("Error al iniciar sesión.");
     }
+    console.log('Login submit', form);
+    
+    navigate('/dashboard');
   };
 
   /**
