@@ -11,6 +11,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import DashboardPage from "./pages/Dashboard";
 import MeetingPage from "./pages/MeetingRoom";
+import AboutUs from "./pages/AboutUs";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/about-us" element={<AboutUs />} />
 
           {/* protegidas */}
           <Route
