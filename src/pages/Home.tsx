@@ -48,15 +48,27 @@ export default function Home() {
           <div className="card">
             <h3 className="card-title">Autenticación</h3>
             <ul className="card-list">
-              <li>Registro</li>
-              <li>Iniciar sesión</li>
+              <li>
+                <Link to="/register" className="card-link">
+                  Registrarse
+                </Link>
+                </li>
+              <li>
+                <Link to="/login" className="card-link">
+                  Iniciar sesión
+                </Link>
+                </li>
             </ul>
           </div>
 
           <div className="card">
             <h3 className="card-title">Reuniones</h3>
             <ul className="card-list">
-              <li>Crear reunión</li>
+              <li>
+                <Link to="/dashboard" className="card-link">
+                  Crear reuniones
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -66,6 +78,17 @@ export default function Home() {
               <li>
                 <Link to="/profile" className="card-link">
                   Ver perfil
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div className="card">
+            <h3 className="card-title">Conócenos aquí</h3>
+            <ul className="card-list">
+              <li>
+                <Link to="/about-us" className="card-link">
+                  Sobre nosotros
                 </Link>
               </li>
             </ul>
