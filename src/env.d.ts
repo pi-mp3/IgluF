@@ -13,3 +13,12 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/**
+ * Environment configuration for the Frontend.
+ * All values come from Vite environment variables.
+ */
+export const ENV = {
+  CHAT_SERVER_URL: import.meta.env.VITE_CHAT_SERVER_URL || "http://localhost:4000",
+  USER_SERVER_URL: import.meta.env.VITE_USER_SERVER_URL || "http://localhost:5000",
+};

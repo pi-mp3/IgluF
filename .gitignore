@@ -3,7 +3,7 @@ node_modules/
 npm-debug.log*
 
 # Dist
-dist/
+
 dist-ssr/
 *.local
 
@@ -13,7 +13,7 @@ vite.config.local.*# Node
 npm-debug.log*
 
 # Dist / Build
-dist/
+
 dist-ssr/
 *.local
 
