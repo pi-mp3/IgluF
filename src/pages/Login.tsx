@@ -1,21 +1,32 @@
-// src/pages/Login.tsx
+/**
+ * Login.tsx
+ *
+ * Login page component for the application.
+ *
+ * Features:
+ *  - Handles login via email/password using Firebase Auth
+ *  - Supports Google and Facebook social login
+ *  - Uses AuthContext to store global user state
+ *  - Handles loading and error states
+ *  - Redirects to /dashboard on successful login
+ *
+ * Usage:
+ *  <Login />
+ */
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { auth } from "../firebaseConfig";
+import { auth, User as FirebaseUser } from "../firebaseConfig";
 import { useAuth } from "../context/AuthContext";
-import {
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  FacebookAuthProvider,
-  User,
-} from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
+
+// ==================== Icon Components ====================
 
 /**
- * Icono de Google
+ * GoogleIcon
  */
-const GoogleIcon: React.FC = (): JSX.Element => (
+const GoogleIcon: React.FC = () => (
   <svg width="18" height="18" viewBox="0 0 533.5 544.3">
     <path fill="#4285F4" d="M533.5 278.4c0-17.4-1.5-34.1-4.3-50.2H272v95h147.5c-6.4 34.4-25 63.5-53.3 83.2l86.1 67.1c50.3-46.4 80.2-114.8 80.2-195.1z"/>
     <path fill="#34A853" d="M272 544.3c72.1 0 132.5-23.7 176.6-64.3l-86.1-67.1c-23.9 16.1-54.4 25.6-90.5 25.6-69.6 0-128.6-47-149.7-110.1l-88.2 68.3c41.4 92.1 135.7 147.6 238 147.6z"/>
@@ -25,123 +36,125 @@ const GoogleIcon: React.FC = (): JSX.Element => (
 );
 
 /**
- * Icono de Facebook
+ * FacebookIcon
  */
-const FacebookIcon: React.FC = (): JSX.Element => (
+const FacebookIcon: React.FC = () => (
   <svg width="18" height="18" viewBox="0 0 32 32">
     <path fill="#1877F2" d="M32 16.1C32 7.2 24.9 0 16 0S0 7.2 0 16.1c0 8 5.9 14.7 13.6 15.9v-11h-4v-5h4v-3.8c0-4 2.4-6.2 6-6.2 1.7 0 3.4.3 3.4.3v3.8h-1.9c-1.9 0-2.5 1.2-2.5 2.4V16h4.3l-.7 5h-3.6v11C26.1 30.8 32 24.1 32 16.1z"/>
     <path fill="#fff" d="M22.3 21l.7-5H19v-3.5c0-1.2.6-2.4 2.5-2.4h1.9V6.3s-1.7-.3-3.4-.3c-3.6 0-6 2.2-6 6.2V16h-4v5h4v11c.8.1 1.7.2 2.5.2s1.7-.1 2.5-.2V21h3.6z"/>
   </svg>
 );
 
+// ==================== Login Component ====================
+
 /**
- * Componente de Login
+ * Login
+ *
+ * Main login page component.
  */
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { login } = useAuth(); // AuthContext: actualiza estado global
+  const { loginFirebase } = useAuth();
 
-  // Estado local del formulario
+  // Form state
   const [form, setForm] = useState({ email: '', password: '', remember: true });
   const [loading, setLoading] = useState(false);
 
-  // Maneja cambios en los inputs
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, type, value, checked } = e.target;
-    setForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+  /**
+   * Handle form input changes
+   */
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  // LOGIN con email + password
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  /**
+   * Handle login with email/password
+   */
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
-      login(userCredential.user as User); // Actualiza estado global
-      navigate('/dashboard');            // Redirige
+      loginFirebase(userCredential.user);
+      navigate('/dashboard');
     } catch (error: any) {
       console.error("Login error:", error);
-      if (error.code === "auth/invalid-credential") alert("Correo o contraseña incorrectos.");
-      else if (error.code === "auth/user-not-found") alert("El usuario no existe.");
-      else if (error.code === "auth/wrong-password") alert("Contraseña incorrecta.");
-      else alert("Error al iniciar sesión.");
+      if (error.code === "auth/user-not-found") alert("User not found.");
+      else if (error.code === "auth/wrong-password") alert("Incorrect password.");
+      else alert("Login failed.");
     } finally {
       setLoading(false);
     }
   };
 
-  // LOGIN con Google
-  const handleGoogleLogin = async (): Promise<void> => {
+  /**
+   * Handle login with Google
+   */
+  const handleGoogleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      login(result.user as User);
+      loginFirebase(result.user);
       navigate("/dashboard");
     } catch (error) {
       console.error("Google login error:", error);
-      alert("Error al iniciar sesión con Google");
+      alert("Google login failed.");
     }
   };
 
-  // LOGIN con Facebook
-  const handleFacebookLogin = async (): Promise<void> => {
+  /**
+   * Handle login with Facebook
+   */
+  const handleFacebookLogin = async () => {
     try {
       const provider = new FacebookAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      login(result.user as User);
+      loginFirebase(result.user);
       navigate("/dashboard");
     } catch (error) {
       console.error("Facebook login error:", error);
-      alert("Error al iniciar sesión con Facebook");
+      alert("Facebook login failed.");
     }
   };
 
+  // ==================== Render ====================
   return (
     <div className="auth-page">
       <div className="auth-wrapper">
         <h1 className="auth-title">{t('login.welcomeBack')}</h1>
         <p className="auth-subtitle">{t('login.loginSubtitle')}</p>
 
+        {/* Email/Password Form */}
         <form className="auth-card" onSubmit={handleSubmit}>
-          {/* EMAIL */}
           <label className="auth-label">
             {t('login.email')}
-            <div className="auth-input-wrapper">
-              <span className="auth-input-icon">@</span>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder={t('login.placeholderEmail')}
-                className="auth-input"
-                required
-              />
-            </div>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder={t('login.placeholderEmail')}
+              className="auth-input"
+              required
+            />
           </label>
 
-          {/* PASSWORD */}
           <label className="auth-label">
             {t('login.password')}
-            <div className="auth-input-wrapper">
-              <span className="auth-input-icon">🔒</span>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder={t('login.placeholderPassword')}
-                className="auth-input"
-                required
-              />
-            </div>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder={t('login.placeholderPassword')}
+              className="auth-input"
+              required
+            />
           </label>
 
-          {/* REMEMBER + FORGOT */}
           <div className="auth-row">
             <label className="auth-remember">
               <input
@@ -162,31 +175,29 @@ export default function Login(): JSX.Element {
             </button>
           </div>
 
-          {/* SUBMIT */}
           <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? "Iniciando sesión..." : t('login.loginButton')}
+            {loading ? "Logging in..." : t('login.loginButton')}
           </button>
 
-          {/* DIVIDER */}
+          {/* Social Login */}
           <div className="auth-divider">
             <span className="auth-divider-line" />
             <span className="auth-divider-text">{t('login.orContinueWith')}</span>
             <span className="auth-divider-line" />
           </div>
 
-          {/* SOCIAL LOGIN */}
           <div className="auth-social-row">
             <button type="button" className="auth-social auth-social-google" onClick={handleGoogleLogin}>
-              <span className="auth-social-icon"><GoogleIcon /></span>
+              <GoogleIcon />
               <span>{t('login.google')}</span>
             </button>
             <button type="button" className="auth-social auth-social-facebook" onClick={handleFacebookLogin}>
-              <span className="auth-social-icon"><FacebookIcon /></span>
+              <FacebookIcon />
               <span>{t('login.facebook')}</span>
             </button>
           </div>
 
-          {/* REGISTER */}
+          {/* Register */}
           <p className="auth-bottom-text">
             {t('login.noAccount')}{' '}
             <button type="button" className="auth-link" onClick={() => navigate('/register')}>
