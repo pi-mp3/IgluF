@@ -1,8 +1,6 @@
 // src/pages/Dashboard.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
-import { auth } from "../firebaseConfig";
 
 interface Meeting {
   id: string;
@@ -36,7 +34,7 @@ const mockMeetings: Meeting[] = [
   },
 ];
 
-export default function DashboardPage() {
+export default function DashboardPage(): JSX.Element {
   const [joinId, setJoinId] = useState("");
   const navigate = useNavigate();
 
@@ -64,31 +62,20 @@ export default function DashboardPage() {
     alert(`Here you would show the AI summary for meeting ${id}`);
   };
 
-  /** 🔥 BOTÓN DE CERRAR SESIÓN */
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/login");
-  };
-
   return (
     <div className="dashboard-page">
       <div className="dashboard-wrapper">
+        {/* HEADER DEL PANEL (ya sin botón rojo de logout) */}
         <header className="dashboard-header">
           <div>
             <h1 className="dashboard-title">Control Panel</h1>
             <p className="dashboard-subtitle">Create or join a meeting</p>
           </div>
-
-          {/* 🔥 Botón Logout */}
-          <button
-            className="dashboard-logout-btn"
-            onClick={handleLogout}
-          >
-            Cerrar Sesión
-          </button>
         </header>
 
+        {/* GRID SUPERIOR: CREAR / UNIRSE */}
         <section className="dashboard-main-grid">
+          {/* Tarjeta: Crear reunión */}
           <div className="dashboard-card">
             <div className="dashboard-card-header">
               <div className="dashboard-icon-circle">
@@ -110,6 +97,7 @@ export default function DashboardPage() {
             </button>
           </div>
 
+          {/* Tarjeta: Unirse a reunión */}
           <div className="dashboard-card">
             <div className="dashboard-card-header">
               <div className="dashboard-icon-circle">
@@ -142,6 +130,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        {/* REUNIONES RECIENTES */}
         <section className="dashboard-recent">
           <h2 className="dashboard-section-title">Recent Meetings</h2>
 

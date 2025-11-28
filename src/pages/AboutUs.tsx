@@ -1,102 +1,88 @@
+// src/pages/AboutUs.tsx
 import React from "react";
 import { Link } from "react-router-dom";
 
 export default function AboutUs() {
   return (
     <div className="about-page">
-      
-      {/* HERO / PRESENTACIÓN */}
-      <section className="hero">
-        <div className="hero-inner">
+
+      {/* HERO SUPERIOR */}
+      <section className="about-hero">
+        <div className="about-hero-inner">
           <div>
-            <p className="hero-eyebrow">Sobre Nosotros</p>
-            <h1 className="hero-title">Iglú, conectando personas</h1>
-            <p className="hero-subtitle">
-              Somos una plataforma diseñada para que tus reuniones sean fluidas,
-              eficientes y humanas. Videoconferencias en tiempo real con audio y
-              video de alta calidad, sin complicaciones y accesibles desde cualquier lugar.
+            <p className="about-eyebrow">Sobre Nosotros</p>
+            <h1 className="about-title">Iglú: conectando personas sin barreras</h1>
+            <p className="about-subtitle">
+              Creamos experiencias de comunicación simples, humanas y de alta calidad.
+              Iglú nace para facilitar reuniones fluidas sin importar el lugar o el dispositivo.
             </p>
           </div>
 
-          <div className="hero-card">
-            <img
-              src="/logo.png"
-              alt="Iglú Team"
-              className="hero-logo"
-            />
+          <div className="about-hero-logo-wrapper">
+            <img src="/logo.png" alt="Iglú Logo" className="about-hero-logo" />
           </div>
         </div>
       </section>
 
       {/* NUESTRA MISIÓN */}
-      <section className="section">
-        <h2 className="section-title">Nuestra Misión</h2>
-        <p className="section-text">
-          Crear herramientas digitales confiables y simples que permitan a equipos,
-          amigos, estudiantes y comunidades colaborar sin barreras.
-          Iglú nació con la idea de reducir la fricción tecnológica
-          y devolverle la esencia a las reuniones: la comunicación humana.
+      <section className="about-section">
+        <h2 className="about-section-title">Nuestra misión</h2>
+        <p className="about-section-text">
+          Diseñamos herramientas digitales confiables que permiten a personas y equipos
+          comunicarse sin fricción. Buscamos eliminar barreras tecnológicas para ofrecer
+          videoconferencias claras, accesibles y modernas.
         </p>
       </section>
 
       {/* QUÉ OFRECEMOS */}
-      <section className="section">
-        <h2 className="section-title">Qué Ofrecemos</h2>
-        <div className="sitemap-grid">
-          <div className="card">
-            <h3 className="card-title">Videollamadas fluidas</h3>
-            <p className="card-text">
-              Conexión estable, audio nítido y video en alta calidad,
-              pensado para reuniones personales o corporativas.
+      <section className="about-section">
+        <h2 className="about-section-title">Qué ofrecemos</h2>
+
+        <div className="about-grid">
+          <div className="about-card">
+            <h3 className="about-card-title">Videollamadas de calidad</h3>
+            <p className="about-card-text">
+              Audio limpio, video nítido y conexión estable para reuniones profesionales,
+              clases, presentaciones y más.
             </p>
           </div>
 
-          <div className="card">
-            <h3 className="card-title">Reuniones rápidas</h3>
-            <p className="card-text">
-              Crea un ID y compártelo. Nada más.
-              Entra con un clic sin complicaciones ni pasos extras.
+          <div className="about-card">
+            <h3 className="about-card-title">Reuniones rápidas</h3>
+            <p className="about-card-text">
+              Crea un ID único y comparte el enlace. Nada más. Sin fricción,
+              sin configuraciones complicadas.
             </p>
           </div>
 
-          <div className="card">
-            <h3 className="card-title">Productividad real</h3>
-            <p className="card-text">
-              Recopila notas, genera resúmenes y guarda reuniones
-              para mantenerte enfocado y organizado.
+          <div className="about-card">
+            <h3 className="about-card-title">Herramientas inteligentes</h3>
+            <p className="about-card-text">
+              Resúmenes automáticos con IA, notas, historial y más funciones
+              para mejorar tu productividad.
             </p>
           </div>
         </div>
       </section>
 
-      {/* EQUIPO */}
-      <section className="section">
-        <h2 className="section-title">El equipo detrás de Iglú</h2>
-        <p className="section-text">
-          Somos un grupo de desarrolladores apasionados por crear productos digitales
-          accesibles y de calidad. Nos mueve la idea de conectar personas sin importar
-          dónde estén y cómo se comuniquen.
-        </p>
+      {/* CTA FINAL */}
+      <section className="about-section">
+        <div className="about-cta-card">
+          <h2 className="about-section-title">Únete a nuestra comunidad</h2>
 
-        <div className="team-logo-container">
-          <img src="/logo.png" alt="Iglú Logo" className="team-photo" />
-        </div>
-      </section>
+          <p className="about-section-text">
+            Empieza a usar Iglú hoy y descubre una forma clara, moderna y ordenada de reunirte.
+          </p>
 
-      {/* CTA */}
-      <section className="section">
-        <h2 className="section-title">Únete a nuestra comunidad</h2>
-        <p className="section-text">
-          Empieza a usar Iglú hoy y descubre una nueva forma de reunirte.
-        </p>
+          <div className="about-cta-actions">
+            <Link to="/register" className="btn-outline-dark">
+              Comenzar Gratis
+            </Link>
 
-        <div className="hero-actions">
-          <Link to="/register" className="btn-primary">
-            Comenzar Gratis
-          </Link>
-          <Link to="/login" className="btn-outline">
-            Iniciar Sesión
-          </Link>
+            <Link to="/login" className="btn-outline-dark">
+              Iniciar sesión
+            </Link>
+          </div>
         </div>
       </section>
 
