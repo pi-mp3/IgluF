@@ -1,9 +1,8 @@
 /**
  * Header.tsx
  *
- * UPDATED: Show "Sobre Nosotros" only before login.
- * Add "Crear Reunión" after login.
- * Maintains button style consistency and AuthContext session detection.
+ * UPDATED: All pre-login buttons consistent.
+ * "Crear Reunión" post-login highlighted.
  */
 
 import React from "react";
@@ -33,34 +32,40 @@ export default function Header() {
                 Hola {user.email?.split("@")[0]} 👋
               </span>
 
-              <Link to="/dashboard" className="btn-link">
+              <Link to="/dashboard" className="btn-pill btn-pill--outline">
                 Reuniones
               </Link>
 
-              <Link to="/crear-reunion" className="btn-pill btn-pill--primary">
+              <Link
+                to="/crear-reunion"
+                className="btn-pill btn-pill--solid" // destacado
+              >
                 Crear Reunión
               </Link>
 
-              <Link to="/profile" className="btn-outline">
+              <Link to="/profile" className="btn-pill btn-pill--outline">
                 Perfil
               </Link>
 
-              <button className="btn-outline" onClick={logout}>
+              <button
+                className="btn-pill btn-pill--outline"
+                onClick={logout}
+              >
                 Cerrar Sesión
               </button>
             </>
           ) : (
             <>
-              {/* Before login */}
+              {/* Before login → all same style */}
               <Link to="/about-us" className="btn-pill btn-pill--outline">
                 Sobre Nosotros
               </Link>
 
-              <Link to="/login" className="btn-link">
+              <Link to="/login" className="btn-pill btn-pill--outline">
                 Iniciar Sesión
               </Link>
 
-              <Link to="/register" className="btn-outline">
+              <Link to="/register" className="btn-pill btn-pill--outline">
                 Registrarse
               </Link>
             </>
