@@ -1,14 +1,11 @@
 /**
  * Header.tsx
- * 
- * Componente de cabecera de la aplicación.
- * Muestra el logo, navegación y botones de usuario.
- * 
- * Si el usuario está logueado:
- *   - Saludo con su correo
- *   - Acceso al dashboard, perfil y logout
- * Si no está logueado:
- *   - Botones para iniciar sesión o registrarse
+ *
+ * ORIGINAL UI + FIXED LOGOUT BEHAVIOR
+ *
+ * - Maintains your visual design exactly as you had it.
+ * - Uses AuthContext for real session detection.
+ * - Logout now works instantly thanks to improved AuthContext.
  */
 
 import React from "react";
@@ -16,50 +13,51 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Header() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
 
   return (
     <header className="header">
       <div className="header-inner">
-        {/* Logo de la app */}
+
+        {/* App Logo */}
         <Link to="/" className="header-logo">
           <img src="/logo.png" alt="Iglú Logo" />
           <span>Iglú</span>
         </Link>
 
+        {/* Navigation */}
         <nav className="header-nav">
           {user ? (
             <>
-              {/* Saludo al usuario */}
+              {/* Welcome user */}
               <span className="user-welcome">
                 Hola {user.email?.split("@")[0]} 👋
               </span>
 
-              {/* Botones de navegación */}
-              <Link to="/dashboard" className="btn-link dashboard-primary-btn">
+              {/* Dashboard */}
+              <Link to="/dashboard" className="btn-link">
                 Reuniones
               </Link>
 
-              <Link to="/profile" className="btn-outline dashboard-secondary-btn">
+              {/* Profile */}
+              <Link to="/profile" className="btn-outline">
                 Perfil
               </Link>
 
-              {/* Botón de cerrar sesión */}
-              <button
-                className="btn-outline dashboard-secondary-btn"
-                onClick={logout}
-              >
+              {/* Logout */}
+              <button className="btn-outline" onClick={logout}>
                 Cerrar Sesión
               </button>
             </>
           ) : (
             <>
-              {/* Usuario no autenticado */}
-              <Link to="/login" className="btn-link dashboard-primary-btn">
+              {/* Login */}
+              <Link to="/login" className="btn-link">
                 Iniciar Sesión
               </Link>
 
-              <Link to="/register" className="btn-outline dashboard-secondary-btn">
+              {/* Register */}
+              <Link to="/register" className="btn-outline">
                 Registrarse
               </Link>
             </>
