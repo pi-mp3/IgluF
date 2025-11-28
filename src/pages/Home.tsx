@@ -1,8 +1,9 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // ⬅️ AÑADIR Link
-import MeetingExplore from '../widgets/MeetingExplore';
+// src/pages/Home.tsx
+import React from "react";
+import { useNavigate, Link } from "react-router-dom";
+import MeetingExplore from "../widgets/MeetingExplore";
 
-export default function Home() {
+export default function Home(): JSX.Element {
   const navigate = useNavigate();
 
   return (
@@ -20,14 +21,16 @@ export default function Home() {
 
             <div className="hero-actions">
               <button
-                className="btn-primary"
-                onClick={() => navigate('/register')}
+                type="button"
+                className="btn-pill btn-pill--primary"
+                onClick={() => navigate("/register")}
               >
                 Comenzar Gratis
               </button>
               <button
-                className="btn-outline"
-                onClick={() => navigate('/login')}
+                type="button"
+                className="btn-pill btn-pill--outline"
+                onClick={() => navigate("/login")}
               >
                 Iniciar Sesión
               </button>
@@ -49,15 +52,15 @@ export default function Home() {
             <h3 className="card-title">Autenticación</h3>
             <ul className="card-list">
               <li>
-                <Link to="/register" className="card-link">
+                <Link to="/register" className="card-link auth-link">
                   Registrarse
                 </Link>
-                </li>
+              </li>
               <li>
-                <Link to="/login" className="card-link">
+                <Link to="/login" className="card-link auth-link">
                   Iniciar sesión
                 </Link>
-                </li>
+              </li>
             </ul>
           </div>
 
@@ -65,7 +68,7 @@ export default function Home() {
             <h3 className="card-title">Reuniones</h3>
             <ul className="card-list">
               <li>
-                <Link to="/dashboard" className="card-link">
+                <Link to="/dashboard" className="card-link auth-link">
                   Crear reuniones
                 </Link>
               </li>
@@ -76,7 +79,7 @@ export default function Home() {
             <h3 className="card-title">Perfil</h3>
             <ul className="card-list">
               <li>
-                <Link to="/profile" className="card-link">
+                <Link to="/profile" className="card-link auth-link">
                   Ver perfil
                 </Link>
               </li>
@@ -87,7 +90,7 @@ export default function Home() {
             <h3 className="card-title">Conócenos aquí</h3>
             <ul className="card-list">
               <li>
-                <Link to="/about-us" className="card-link">
+                <Link to="/about-us" className="card-link auth-link">
                   Sobre nosotros
                 </Link>
               </li>

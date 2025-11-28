@@ -18,8 +18,7 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header-inner">
-
-        {/* App Logo */}
+        {/* Logo */}
         <Link to="/" className="header-logo">
           <img src="/logo.png" alt="Iglú Logo" />
           <span>Iglú</span>
@@ -27,7 +26,14 @@ export default function Header() {
 
         {/* Navigation */}
         <nav className="header-nav">
-          {user ? (
+          {/* Sobre nosotros → visible siempre */}
+          <Link to="/about-us" className="btn-pill btn-pill--outline">
+            Sobre nosotros
+          </Link>
+
+          {loading ? (
+            <span className="header-loading">Cargando sesión...</span>
+          ) : user ? (
             <>
               {/* Welcome user */}
               <span className="user-welcome">

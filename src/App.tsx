@@ -1,3 +1,4 @@
+// src/App.tsx
 import React from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -15,13 +16,19 @@ import AboutUs from "./pages/AboutUs";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
-export default function App() {
+export default function App(): JSX.Element {
   const location = useLocation();
-  const isMeetingRoute = location.pathname.startsWith("/meeting");
+
+  const hideHeader =
+    location.pathname.startsWith("/forgot-password") ||
+    location.pathname.startsWith("/reset-password");
+
+  const hideFooter = location.pathname.startsWith("/meeting");
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      {/* Header solo si NO estamos en recuperación de contraseña */}
+      {!hideHeader && <Header />}
 
       <main className="flex-1">
         <Routes>
@@ -63,7 +70,8 @@ export default function App() {
         </Routes>
       </main>
 
-      {!isMeetingRoute && <Footer />}
+      {/* footer: ocultar en reuniones */}
+      {!hideFooter && <Footer />}
     </div>
   );
 }

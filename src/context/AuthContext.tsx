@@ -1,6 +1,8 @@
 // src/context/AuthContext.tsx
+import { User, onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "../firebaseConfig";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {ReactNode, createContext, useContext, useState, useEffect } from "react";
 import { AuthAPI } from "../api/http";
 
 // ========================= Types =========================
@@ -10,7 +12,7 @@ interface User {
   email: string;
 }
 
-interface AuthContextType {
+interface AuthContextValue {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
