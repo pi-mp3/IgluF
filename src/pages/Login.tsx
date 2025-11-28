@@ -1,19 +1,19 @@
-// Login.tsx
+// src/pages/Login.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { auth } from "../firebaseConfig"; 
+import { auth } from "../firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
   FacebookAuthProvider,
-  User
+  User,
 } from "firebase/auth";
 
 /**
- * Componente de ícono de Google
+ * Icono de Google
  */
 const GoogleIcon: React.FC = (): JSX.Element => (
   <svg width="18" height="18" viewBox="0 0 533.5 544.3">
@@ -25,7 +25,7 @@ const GoogleIcon: React.FC = (): JSX.Element => (
 );
 
 /**
- * Componente de ícono de Facebook
+ * Icono de Facebook
  */
 const FacebookIcon: React.FC = (): JSX.Element => (
   <svg width="18" height="18" viewBox="0 0 32 32">
@@ -35,66 +35,50 @@ const FacebookIcon: React.FC = (): JSX.Element => (
 );
 
 /**
- * Componente principal de Login
+ * Componente de Login
  */
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const { t } = useTranslation();
-
-  // Traemos login desde AuthContext para actualizar estado global
-  const { login } = useAuth();
+  const { login } = useAuth(); // AuthContext: actualiza estado global
 
   // Estado local del formulario
-  const [form, setForm] = useState({
-    email: '',
-    password: '',
-    remember: true,
-  });
+  const [form, setForm] = useState({ email: '', password: '', remember: true });
+  const [loading, setLoading] = useState(false);
 
-  /**
-   * Maneja cambios en los inputs del formulario
-   */
+  // Maneja cambios en los inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, type, checked, value } = e.target;
+    const { name, type, value, checked } = e.target;
     setForm(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  /**
-   * Maneja login con email + password
-   */
+  // LOGIN con email + password
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    setLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
-      
-      // Actualiza el estado global con el usuario logeado
-      login(userCredential.user as User);
-
-      navigate('/dashboard');
+      login(userCredential.user as User); // Actualiza estado global
+      navigate('/dashboard');            // Redirige
     } catch (error: any) {
-      console.error("ERROR LOGIN:", error);
-      if (error.code === "auth/invalid-credential")
-        alert("Correo o contraseña incorrectos.");
-      else if (error.code === "auth/user-not-found")
-        alert("El usuario no existe.");
-      else if (error.code === "auth/wrong-password")
-        alert("Contraseña incorrecta.");
-      else
-        alert("Error al iniciar sesión.");
+      console.error("Login error:", error);
+      if (error.code === "auth/invalid-credential") alert("Correo o contraseña incorrectos.");
+      else if (error.code === "auth/user-not-found") alert("El usuario no existe.");
+      else if (error.code === "auth/wrong-password") alert("Contraseña incorrecta.");
+      else alert("Error al iniciar sesión.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  /**
-   * Maneja login con Google
-   */
+  // LOGIN con Google
   const handleGoogleLogin = async (): Promise<void> => {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-
       login(result.user as User);
       navigate("/dashboard");
     } catch (error) {
@@ -103,14 +87,11 @@ export default function Login(): JSX.Element {
     }
   };
 
-  /**
-   * Maneja login con Facebook
-   */
+  // LOGIN con Facebook
   const handleFacebookLogin = async (): Promise<void> => {
     try {
       const provider = new FacebookAuthProvider();
       const result = await signInWithPopup(auth, provider);
-
       login(result.user as User);
       navigate("/dashboard");
     } catch (error) {
@@ -132,12 +113,12 @@ export default function Login(): JSX.Element {
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">@</span>
               <input
-                className="auth-input"
                 type="email"
                 name="email"
-                placeholder={t('login.placeholderEmail')}
                 value={form.email}
                 onChange={handleChange}
+                placeholder={t('login.placeholderEmail')}
+                className="auth-input"
                 required
               />
             </div>
@@ -149,12 +130,12 @@ export default function Login(): JSX.Element {
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">🔒</span>
               <input
-                className="auth-input"
                 type="password"
                 name="password"
-                placeholder={t('login.placeholderPassword')}
                 value={form.password}
                 onChange={handleChange}
+                placeholder={t('login.placeholderPassword')}
+                className="auth-input"
                 required
               />
             </div>
@@ -182,8 +163,8 @@ export default function Login(): JSX.Element {
           </div>
 
           {/* SUBMIT */}
-          <button type="submit" className="auth-submit">
-            {t('login.loginButton')}
+          <button type="submit" className="auth-submit" disabled={loading}>
+            {loading ? "Iniciando sesión..." : t('login.loginButton')}
           </button>
 
           {/* DIVIDER */}
@@ -195,20 +176,11 @@ export default function Login(): JSX.Element {
 
           {/* SOCIAL LOGIN */}
           <div className="auth-social-row">
-            <button
-              type="button"
-              className="auth-social auth-social-google"
-              onClick={handleGoogleLogin}
-            >
+            <button type="button" className="auth-social auth-social-google" onClick={handleGoogleLogin}>
               <span className="auth-social-icon"><GoogleIcon /></span>
               <span>{t('login.google')}</span>
             </button>
-
-            <button
-              type="button"
-              className="auth-social auth-social-facebook"
-              onClick={handleFacebookLogin}
-            >
+            <button type="button" className="auth-social auth-social-facebook" onClick={handleFacebookLogin}>
               <span className="auth-social-icon"><FacebookIcon /></span>
               <span>{t('login.facebook')}</span>
             </button>
@@ -217,11 +189,7 @@ export default function Login(): JSX.Element {
           {/* REGISTER */}
           <p className="auth-bottom-text">
             {t('login.noAccount')}{' '}
-            <button
-              type="button"
-              className="auth-link"
-              onClick={() => navigate('/register')}
-            >
+            <button type="button" className="auth-link" onClick={() => navigate('/register')}>
               {t('login.register')}
             </button>
           </p>
