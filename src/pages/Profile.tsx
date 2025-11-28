@@ -20,65 +20,37 @@ export default function Profile() {
     password: "",
   });
 
-  // ================================
-  // ✨ Capturar usuario Firebase
-  // ================================
+  // 🔥 Detectar usuario Firebase
   useEffect(() => {
-    console.log("Profile Mount: escuchando auth...");
-
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      console.log("Auth changed:", firebaseUser);
-
       if (!firebaseUser) {
-        console.warn("NO hay usuario logeado → redirect login");
         navigate("/login");
         return;
       }
 
-      console.log("Usuario UID:", firebaseUser.uid);
       setUserId(firebaseUser.uid);
-
-      setForm((prev) => ({
-        ...prev,
-        email: firebaseUser.email || "",
-      }));
+      setForm((prev) => ({ ...prev, email: firebaseUser.email || "" }));
     });
 
     return () => unsubscribe();
   }, [navigate]);
 
-  // ================================
-  // ✨ Pedir al backend el perfil
-  // ================================
+  // 🔥 Obtener datos del backend
   useEffect(() => {
     if (!userId) return;
-
-    console.log("🔎 Fetch Backend → getUserById(", userId, ")");
 
     const fetchUser = async () => {
       try {
         const data = await getUserById(userId);
-        console.log("📦 Respuesta backend:", data);
-
-        if (!data) {
-          console.warn("Backend NO devolvió datos → perfil vacío");
-          setError("No hay datos en backend. Completa tu perfil.");
-          setIsEditing(true);
-          setLoading(false);
-          return;
-        }
-
-        // Validar campos
         setForm({
-          firstName: data.firstName || "",
-          lastName: data.lastName || "",
-          age: data.age || "",
-          email: data.email || "",
+          firstName: data.firstName,
+          lastName: data.lastName,
+          age: data.age,
+          email: data.email,
           password: "",
         });
       } catch (err: any) {
-        console.error("❌ Error al traer datos:", err);
-        setError("No se pudo cargar el perfil desde el backend.");
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -87,78 +59,52 @@ export default function Profile() {
     fetchUser();
   }, [userId]);
 
-  // ================================
-  // 🔹 Input
-  // ================================
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log(`Input changed → ${name}:`, value);
-
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ================================
-  // 🔹 Guardar
-  // ================================
-  const handleSave = async () => {
-    if (!userId) return;
+const handleSave = async () => {
+  if (!userId) return;
+  try {
+    await updateUser(userId, {
+      ...form,
+      age: Number(form.age),   // 🔥 convertir edad de string → número
+    });
 
-    console.log("💾 Guardando cambios:", form);
+    setIsEditing(false);
+    alert("Perfil actualizado correctamente");
+  } catch (err: any) {
+    alert(err.message);
+  }
+};
 
-    try {
-      await updateUser(userId, {
-        ...form,
-        age: Number(form.age),
-      });
-
-      setIsEditing(false);
-      alert("Perfil actualizado correctamente");
-    } catch (err: any) {
-      console.error("❌ Error al guardar:", err);
-      alert("Error al guardar: " + err.message);
-    }
-  };
-
-  // ================================
-  // 🔹 Eliminar cuenta
-  // ================================
   const handleDelete = async () => {
     if (!userId) return;
     if (!window.confirm("¿Seguro que quieres eliminar tu cuenta?")) return;
 
-    console.log("🚮 Eliminando usuario:", userId);
-
     try {
       await deleteUser(userId);
       await signOut(auth);
+      alert("Cuenta eliminada");
       navigate("/login");
     } catch (err: any) {
-      alert("Error eliminando usuario: " + err.message);
+      alert(err.message);
     }
   };
 
-  // ================================
-  // 🔹 Logout
-  // ================================
   const handleLogout = async () => {
-    console.log("🔐 Logout");
     await signOut(auth);
     navigate("/login");
   };
 
-  // ================================
-  // Vistas de estado
-  // ================================
   if (loading) return <div>Cargando perfil...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="auth-page">
       <div className="auth-wrapper">
         <h1 className="auth-title">Mi Perfil</h1>
-
-        {error && (
-          <p style={{ color: "red", fontWeight: "bold" }}>⚠️ {error}</p>
-        )}
 
         <form className="auth-card" onSubmit={(e) => e.preventDefault()}>
 
@@ -175,7 +121,7 @@ export default function Profile() {
           </label>
 
           <label className="auth-label">
-            Apellido 
+            Apellido
             <input
               className="auth-input"
               type="text"
@@ -199,7 +145,7 @@ export default function Profile() {
           </label>
 
           <label className="auth-label">
-            Email 
+            Email
             <input className="auth-input" type="email" disabled value={form.email} />
           </label>
 

@@ -1,9 +1,8 @@
-// src/pages/Home.tsx
-import React from "react";
-import { useNavigate, Link } from "react-router-dom";
-import MeetingExplore from "../widgets/MeetingExplore";
+import React from 'react';
+import { useNavigate, Link } from 'react-router-dom'; // ⬅️ AÑADIR Link
+import MeetingExplore from '../widgets/MeetingExplore';
 
-export default function Home(): JSX.Element {
+export default function Home() {
   const navigate = useNavigate();
 
   return (
@@ -21,16 +20,14 @@ export default function Home(): JSX.Element {
 
             <div className="hero-actions">
               <button
-                type="button"
-                className="btn-pill btn-pill--primary"
-                onClick={() => navigate("/register")}
+                className="btn-primary"
+                onClick={() => navigate('/register')}
               >
                 Comenzar Gratis
               </button>
               <button
-                type="button"
-                className="btn-pill btn-pill--outline"
-                onClick={() => navigate("/login")}
+                className="btn-outline"
+                onClick={() => navigate('/login')}
               >
                 Iniciar Sesión
               </button>
@@ -51,27 +48,15 @@ export default function Home(): JSX.Element {
           <div className="card">
             <h3 className="card-title">Autenticación</h3>
             <ul className="card-list">
-              <li>
-                <Link to="/register" className="card-link auth-link">
-                  Registrarse
-                </Link>
-              </li>
-              <li>
-                <Link to="/login" className="card-link auth-link">
-                  Iniciar sesión
-                </Link>
-              </li>
+              <li>Registro</li>
+              <li>Iniciar sesión</li>
             </ul>
           </div>
 
           <div className="card">
             <h3 className="card-title">Reuniones</h3>
             <ul className="card-list">
-              <li>
-                <Link to="/dashboard" className="card-link auth-link">
-                  Crear reuniones
-                </Link>
-              </li>
+              <li>Crear reunión</li>
             </ul>
           </div>
 
@@ -79,19 +64,8 @@ export default function Home(): JSX.Element {
             <h3 className="card-title">Perfil</h3>
             <ul className="card-list">
               <li>
-                <Link to="/profile" className="card-link auth-link">
+                <Link to="/profile" className="card-link">
                   Ver perfil
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="card">
-            <h3 className="card-title">Conócenos aquí</h3>
-            <ul className="card-list">
-              <li>
-                <Link to="/about-us" className="card-link auth-link">
-                  Sobre nosotros
                 </Link>
               </li>
             </ul>

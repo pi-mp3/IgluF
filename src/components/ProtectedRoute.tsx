@@ -1,23 +1,19 @@
-// src/components/ProtectedRoute.tsx
 import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Navigate } from "react-router-dom";
+import { auth } from "../firebaseConfig"; // <-- así se llama en tu proyecto
 
 interface Props {
   children: JSX.Element;
 }
 
-export default function ProtectedRoute({ children }: Props): JSX.Element {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+export default function ProtectedRoute({ children }: Props) {
+  const user = auth.currentUser;
 
-  // Mientras Firebase responde, no redirigimos
-  if (loading) {
-    return null; // aquí podrías poner un spinner si quieres
-  }
+  console.log("[PROTECTED ROUTE] Usuario actual:", user);
 
   if (!user) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    console.log("[PROTECTED ROUTE] Usuario NO autenticado → redirigiendo a login");
+    return <Navigate to="/login" replace />;
   }
 
   return children;
