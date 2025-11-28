@@ -1,3 +1,4 @@
+// Login.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -8,12 +9,11 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   FacebookAuthProvider,
+  User
 } from "firebase/auth";
 
-
 /**
- * Google login icon component.
- * @returns {JSX.Element} The Google logo icon.
+ * Componente de ícono de Google
  */
 const GoogleIcon: React.FC = (): JSX.Element => (
   <svg width="18" height="18" viewBox="0 0 533.5 544.3">
@@ -25,8 +25,7 @@ const GoogleIcon: React.FC = (): JSX.Element => (
 );
 
 /**
- * Facebook login icon component.
- * @returns {JSX.Element} The Facebook logo icon.
+ * Componente de ícono de Facebook
  */
 const FacebookIcon: React.FC = (): JSX.Element => (
   <svg width="18" height="18" viewBox="0 0 32 32">
@@ -35,40 +34,48 @@ const FacebookIcon: React.FC = (): JSX.Element => (
   </svg>
 );
 
+/**
+ * Componente principal de Login
+ */
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  //const { login } = useAuth();
-  /**
-   * Form state: email, password and remember flag.
-   */
+  // Traemos login desde AuthContext para actualizar estado global
+  const { login } = useAuth();
+
+  // Estado local del formulario
   const [form, setForm] = useState({
     email: '',
     password: '',
     remember: true,
   });
 
+  /**
+   * Maneja cambios en los inputs del formulario
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, type, checked, value } = e.target;
-    setForm((prev) => ({
+    setForm(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
   /**
-   * LOGIN REAL CON FIREBASE (email + contraseña)
+   * Maneja login con email + password
    */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-
     try {
-      await signInWithEmailAndPassword(auth, form.email, form.password);
+      const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
+      
+      // Actualiza el estado global con el usuario logeado
+      login(userCredential.user as User);
+
       navigate('/dashboard');
     } catch (error: any) {
       console.error("ERROR LOGIN:", error);
-
       if (error.code === "auth/invalid-credential")
         alert("Correo o contraseña incorrectos.");
       else if (error.code === "auth/user-not-found")
@@ -78,18 +85,17 @@ export default function Login(): JSX.Element {
       else
         alert("Error al iniciar sesión.");
     }
-    console.log('Login submit', form);
-    
-    navigate('/dashboard');
   };
 
   /**
-   * LOGIN REAL CON GOOGLE
+   * Maneja login con Google
    */
   const handleGoogleLogin = async (): Promise<void> => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+
+      login(result.user as User);
       navigate("/dashboard");
     } catch (error) {
       console.error("Google login error:", error);
@@ -98,12 +104,14 @@ export default function Login(): JSX.Element {
   };
 
   /**
-   * LOGIN REAL CON FACEBOOK
+   * Maneja login con Facebook
    */
   const handleFacebookLogin = async (): Promise<void> => {
     try {
       const provider = new FacebookAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+
+      login(result.user as User);
       navigate("/dashboard");
     } catch (error) {
       console.error("Facebook login error:", error);
@@ -185,7 +193,7 @@ export default function Login(): JSX.Element {
             <span className="auth-divider-line" />
           </div>
 
-          {/* SOCIAL */}
+          {/* SOCIAL LOGIN */}
           <div className="auth-social-row">
             <button
               type="button"
