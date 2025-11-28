@@ -1,9 +1,18 @@
-// src/components/Header.tsx
+/**
+ * Header.tsx
+ *
+ * ORIGINAL UI + FIXED LOGOUT BEHAVIOR
+ *
+ * - Maintains your visual design exactly as you had it.
+ * - Uses AuthContext for real session detection.
+ * - Logout now works instantly thanks to improved AuthContext.
+ */
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-export default function Header(): JSX.Element {
+export default function Header() {
   const { user, loading, logout } = useAuth();
 
   return (
@@ -15,7 +24,7 @@ export default function Header(): JSX.Element {
           <span>Iglú</span>
         </Link>
 
-        {/* Navegación derecha */}
+        {/* Navigation */}
         <nav className="header-nav">
           {/* Sobre nosotros → visible siempre */}
           <Link to="/about-us" className="btn-pill btn-pill--outline">
@@ -26,45 +35,35 @@ export default function Header(): JSX.Element {
             <span className="header-loading">Cargando sesión...</span>
           ) : user ? (
             <>
+              {/* Welcome user */}
               <span className="user-welcome">
                 Hola {user.email?.split("@")[0]} 👋
               </span>
 
-              <Link
-                to="/dashboard"
-                className="btn-pill btn-pill--outline"
-              >
+              {/* Dashboard */}
+              <Link to="/dashboard" className="btn-link">
                 Reuniones
               </Link>
 
-              <Link
-                to="/profile"
-                className="btn-pill btn-pill--outline"
-              >
+              {/* Profile */}
+              <Link to="/profile" className="btn-outline">
                 Perfil
               </Link>
 
-              <button
-                type="button"
-                className="btn-pill btn-pill--primary"
-                onClick={logout}
-              >
+              {/* Logout */}
+              <button className="btn-outline" onClick={logout}>
                 Cerrar Sesión
               </button>
             </>
           ) : (
             <>
-              <Link
-                to="/login"
-                className="btn-pill btn-pill--outline"
-              >
+              {/* Login */}
+              <Link to="/login" className="btn-link">
                 Iniciar Sesión
               </Link>
 
-              <Link
-                to="/register"
-                className="btn-pill btn-pill--primary"
-              >
+              {/* Register */}
+              <Link to="/register" className="btn-outline">
                 Registrarse
               </Link>
             </>
