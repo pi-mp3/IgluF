@@ -28,9 +28,11 @@ export default function Header() {
                 Perfil
               </Link>
 
-              <button className="btn-outline" onClick={logout}>
+        
+                <Link to="/" className="btn-link" onClick={logout}>
                 Cerrar Sesión
-              </button>
+                </Link>
+                
             </>
           ) : (
             <>

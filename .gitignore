@@ -1,7 +1,7 @@
 # Node
 node_modules/
 npm-debug.log*
-
+node_modules/.vite/deps/_metadata.json
 # Dist
 dist/
 dist-ssr/

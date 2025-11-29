@@ -44,10 +44,26 @@ export default function DashboardPage() {
     return Math.random().toString(36).substring(2, 9).toUpperCase();
   };
 
-  const handleCreateMeeting = (): void => {
-    const id = generateRandomId();
-    navigate(`/meeting/${id}`);
-  };
+ const handleCreateMeeting = async (): Promise<void> => {
+  try {
+    const res = await fetch("http://localhost:5000/api/meeting/create", {
+      method: "POST",
+    });
+
+    const data = await res.json();
+
+    if (!data.meetingId) {
+      alert("Error creating meeting");
+      return;
+    }
+
+    navigate(`/meeting/${data.meetingId}`);
+  } catch (error) {
+    console.error(error);
+    alert("Server error creating meeting");
+  }
+};
+
 
   const handleJoinMeeting = (): void => {
     const trimmed = joinId.trim();
@@ -73,21 +89,6 @@ export default function DashboardPage() {
   return (
     <div className="dashboard-page">
       <div className="dashboard-wrapper">
-        <header className="dashboard-header">
-          <div>
-            <h1 className="dashboard-title">Control Panel</h1>
-            <p className="dashboard-subtitle">Create or join a meeting</p>
-          </div>
-
-          {/* 🔥 Botón Logout */}
-          <button
-            className="dashboard-logout-btn"
-            onClick={handleLogout}
-          >
-            Cerrar Sesión
-          </button>
-        </header>
-
         <section className="dashboard-main-grid">
           <div className="dashboard-card">
             <div className="dashboard-card-header">
@@ -95,7 +96,7 @@ export default function DashboardPage() {
                 <span className="dashboard-icon">＋</span>
               </div>
               <div>
-                <h2 className="dashboard-card-title">Create Meeting</h2>
+                <h2 className="dashboard-card-title">Crea una reunión</h2>
                 <p className="dashboard-card-text">
                   Generate a unique ID and share it with participants.
                 </p>
