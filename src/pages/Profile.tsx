@@ -4,6 +4,11 @@ import { auth } from "../firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { getUserById, updateUser, deleteUser } from "./api";
 
+/**
+ * Perfil del usuario
+ *
+ * Permite ver y editar la información del usuario autenticado.
+ */
 export default function Profile() {
   const navigate = useNavigate();
 
@@ -20,22 +25,16 @@ export default function Profile() {
     password: "",
   });
 
-  // ================================
-  // ✨ Capturar usuario Firebase
-  // ================================
+  // ==============================
+  // 🔹 Detectar usuario logueado
+  // ==============================
   useEffect(() => {
-    console.log("Profile Mount: escuchando auth...");
-
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      console.log("Auth changed:", firebaseUser);
-
       if (!firebaseUser) {
-        console.warn("NO hay usuario logeado → redirect login");
         navigate("/login");
         return;
       }
 
-      console.log("Usuario UID:", firebaseUser.uid);
       setUserId(firebaseUser.uid);
 
       setForm((prev) => ({
@@ -47,38 +46,33 @@ export default function Profile() {
     return () => unsubscribe();
   }, [navigate]);
 
-  // ================================
-  // ✨ Pedir al backend el perfil
-  // ================================
+  // ==============================
+  // 🔹 Obtener datos del backend
+  // ==============================
   useEffect(() => {
     if (!userId) return;
-
-    console.log("🔎 Fetch Backend → getUserById(", userId, ")");
 
     const fetchUser = async () => {
       try {
         const data = await getUserById(userId);
-        console.log("📦 Respuesta backend:", data);
 
         if (!data) {
-          console.warn("Backend NO devolvió datos → perfil vacío");
-          setError("No hay datos en backend. Completa tu perfil.");
+          setError("No hay datos guardados. Completa tu perfil.");
           setIsEditing(true);
           setLoading(false);
           return;
         }
 
-        // Validar campos
         setForm({
           firstName: data.firstName || "",
           lastName: data.lastName || "",
-          age: data.age || "",
+          age: data.age?.toString() || "",
           email: data.email || "",
           password: "",
         });
-      } catch (err: any) {
-        console.error("❌ Error al traer datos:", err);
-        setError("No se pudo cargar el perfil desde el backend.");
+      } catch (err) {
+        console.error("Error obteniendo usuario:", err);
+        setError("Error obteniendo datos del usuario");
       } finally {
         setLoading(false);
       }
@@ -87,23 +81,19 @@ export default function Profile() {
     fetchUser();
   }, [userId]);
 
-  // ================================
-  // 🔹 Input
-  // ================================
+  // ==============================
+  // 🔹 Manejo de inputs
+  // ==============================
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log(`Input changed → ${name}:`, value);
-
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ================================
-  // 🔹 Guardar
-  // ================================
+  // ==============================
+  // 🔹 Guardar cambios
+  // ==============================
   const handleSave = async () => {
     if (!userId) return;
-
-    console.log("💾 Guardando cambios:", form);
 
     try {
       await updateUser(userId, {
@@ -114,41 +104,36 @@ export default function Profile() {
       setIsEditing(false);
       alert("Perfil actualizado correctamente");
     } catch (err: any) {
-      console.error("❌ Error al guardar:", err);
-      alert("Error al guardar: " + err.message);
+      console.error("Error guardando perfil:", err);
+      alert("Error guardando perfil: " + err.message);
     }
   };
 
-  // ================================
+  // ==============================
   // 🔹 Eliminar cuenta
-  // ================================
+  // ==============================
   const handleDelete = async () => {
     if (!userId) return;
-    if (!window.confirm("¿Seguro que quieres eliminar tu cuenta?")) return;
 
-    console.log("🚮 Eliminando usuario:", userId);
+    if (!window.confirm("¿Seguro que deseas eliminar tu cuenta?")) return;
 
     try {
       await deleteUser(userId);
       await signOut(auth);
       navigate("/login");
     } catch (err: any) {
-      alert("Error eliminando usuario: " + err.message);
+      alert("Error al eliminar cuenta: " + err.message);
     }
   };
 
-  // ================================
-  // 🔹 Logout
-  // ================================
+  // ==============================
+  // 🔹 Cerrar sesión
+  // ==============================
   const handleLogout = async () => {
-    console.log("🔐 Logout");
     await signOut(auth);
     navigate("/login");
   };
 
-  // ================================
-  // Vistas de estado
-  // ================================
   if (loading) return <div>Cargando perfil...</div>;
 
   return (
@@ -161,7 +146,6 @@ export default function Profile() {
         )}
 
         <form className="auth-card" onSubmit={(e) => e.preventDefault()}>
-
           <label className="auth-label">
             Nombre
             <input
@@ -175,7 +159,7 @@ export default function Profile() {
           </label>
 
           <label className="auth-label">
-            Apellido 
+            Apellido
             <input
               className="auth-input"
               type="text"
@@ -199,7 +183,7 @@ export default function Profile() {
           </label>
 
           <label className="auth-label">
-            Email 
+            Correo electrónico
             <input className="auth-input" type="email" disabled value={form.email} />
           </label>
 
