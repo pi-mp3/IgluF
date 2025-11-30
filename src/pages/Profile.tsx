@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { getUserById, updateUser, deleteUser } from "./api";
+import { userInfo } from "os";
 
 /**
  * Perfil del usuario
@@ -63,13 +64,14 @@ export default function Profile() {
           return;
         }
 
-        setForm({
-          firstName: data.firstName || "",
-          lastName: data.lastName || "",
-          age: data.age?.toString() || "",
-          email: data.email || "",
-          password: "",
-        });
+       setForm({
+          firstName: userInfo.name || "",
+          lastName: userInfo.lastName || "",
+          age: userInfo.age?.toString() || "",
+          email: userInfo.email || "",
+          password: ""
+       });
+
       } catch (err) {
         console.error("Error obteniendo usuario:", err);
         setError("Error obteniendo datos del usuario");
