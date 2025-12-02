@@ -1,10 +1,28 @@
 /**
- * Profile.tsx
- * Vista de perfil con:
- * - Edición de datos básicos
- * - Mensajes de error/éxito en la propia página
- * - Modal de confirmación para eliminar cuenta
- * - Modal de confirmación para CERRAR SESIÓN
+ * ============================================================
+ *  PROFILE COMPONENT
+ * ============================================================
+ *
+ * Description:
+ * Manages authenticated user's profile with full CRUD operations
+ * and logout, using Firebase Auth and backend. Includes confirmation
+ * modals for logout and delete, styled like the second design.
+ *
+ * UI:
+ *  - All UI text in Spanish
+ *
+ * Backend Contract:
+ * {
+ *   name: string;
+ *   lastName: string;
+ *   age: number;
+ *   email: string;
+ * }
+ *
+ * Notes:
+ * - Email comes from Firebase and is read-only
+ * - Password is not editable
+ * ============================================================
  */
 
 import React, { useState, useEffect } from "react";
@@ -23,16 +41,14 @@ interface ProfileForm {
 
 export default function Profile() {
   const navigate = useNavigate();
-
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false); // ⬅️ nuevo modal de logout
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const [form, setForm] = useState<ProfileForm>({
     name: "",
@@ -41,40 +57,31 @@ export default function Profile() {
     email: "",
   });
 
-  // Detectar usuario logueado
+  // Detect Firebase logged-in user
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
         navigate("/login");
         return;
       }
-
       setUserId(firebaseUser.uid);
-
-      setForm((prev) => ({
-        ...prev,
-        email: firebaseUser.email || "",
-      }));
+      setForm((prev) => ({ ...prev, email: firebaseUser.email || "" }));
     });
-
     return () => unsubscribe();
   }, [navigate]);
 
-  // Obtener datos de perfil
+  // Fetch user profile
   useEffect(() => {
     if (!userId) return;
-
     const fetchUser = async () => {
       try {
         const data: User | null = await getUser(userId);
-
         if (!data) {
           setError("No hay datos guardados. Completa tu perfil.");
           setIsEditing(true);
           setLoading(false);
           return;
         }
-
         setForm({
           name: data.name || "",
           lastName: data.lastName || "",
@@ -88,7 +95,6 @@ export default function Profile() {
         setLoading(false);
       }
     };
-
     fetchUser();
   }, [userId]);
 
@@ -99,11 +105,9 @@ export default function Profile() {
 
   const handleSave = async () => {
     if (!userId) return;
-
     setError("");
     setSuccessMessage("");
 
-    // Validación básica
     if (!form.name.trim() || !form.lastName.trim() || !form.age.trim()) {
       setError("Todos los campos son obligatorios.");
       return;
@@ -115,7 +119,6 @@ export default function Profile() {
         lastName: form.lastName,
         age: Number(form.age),
       });
-
       setIsEditing(false);
       setSuccessMessage("Perfil actualizado correctamente.");
     } catch (err: any) {
@@ -124,44 +127,33 @@ export default function Profile() {
     }
   };
 
-  // Abre el modal de confirmación de eliminación
-  const handleDelete = () => {
-    if (!userId) return;
-    setShowDeleteModal(true);
-  };
-
-  // Acción real de eliminar cuenta (desde el modal)
+  const handleDelete = () => setShowDeleteModal(true);
   const confirmDelete = async () => {
     if (!userId) return;
-
     try {
       await deleteUser(userId);
       await signOut(auth);
       navigate("/login");
     } catch (err: any) {
       setError("Error al eliminar cuenta: " + err.message);
+    } finally {
+      setShowDeleteModal(false);
     }
   };
 
-  // Abre el modal de confirmación de logout
-  const handleLogout = () => {
-    setShowLogoutModal(true);
-  };
-
-  // Acción real de cerrar sesión (desde el modal)
+  const handleLogout = () => setShowLogoutModal(true);
   const confirmLogout = async () => {
     try {
       await signOut(auth);
       navigate("/login");
     } catch (err: any) {
-      console.error("Error al cerrar sesión:", err);
       setError("Error al cerrar sesión: " + err.message);
     } finally {
       setShowLogoutModal(false);
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
       <div className="auth-page">
         <div className="auth-wrapper">
@@ -169,20 +161,15 @@ export default function Profile() {
         </div>
       </div>
     );
-  }
 
   return (
     <div className="auth-page profile-page">
       <div className="auth-wrapper">
         <h1 className="auth-title">Mi Perfil</h1>
-        <p className="auth-subtitle">
-          Gestiona tu información personal de Iglú.
-        </p>
+        <p className="auth-subtitle">Gestiona tu información personal de Iglú.</p>
 
         {error && <p className="profile-error">⚠️ {error}</p>}
-        {successMessage && (
-          <p className="profile-success">✔ {successMessage}</p>
-        )}
+        {successMessage && <p className="profile-success">✔ {successMessage}</p>}
 
         <form
           className={`auth-card profile-card ${
@@ -199,17 +186,17 @@ export default function Profile() {
                 </p>
               )}
             </div>
-
-            {isEditing ? (
-              <span className="profile-status-pill profile-status-pill--editing">
-                Editando
-              </span>
-            ) : (
-              <span className="profile-status-pill">Solo lectura</span>
-            )}
+            <span
+              className={`profile-status-pill ${
+                isEditing ? "profile-status-pill--editing" : ""
+              }`}
+            >
+              {isEditing ? "Editando" : "Solo lectura"}
+            </span>
           </div>
 
           <div className="profile-grid">
+            {/** Nombre */}
             <label className="auth-label">
               Nombre
               <div
@@ -229,6 +216,7 @@ export default function Profile() {
               </div>
             </label>
 
+            {/** Apellido */}
             <label className="auth-label">
               Apellido
               <div
@@ -248,6 +236,7 @@ export default function Profile() {
               </div>
             </label>
 
+            {/** Edad */}
             <label className="auth-label">
               Edad
               <div
@@ -267,16 +256,12 @@ export default function Profile() {
               </div>
             </label>
 
+            {/** Email */}
             <label className="auth-label">
               Correo electrónico
               <div className="auth-input-wrapper">
                 <span className="auth-input-icon">@</span>
-                <input
-                  className="auth-input"
-                  type="email"
-                  disabled
-                  value={form.email}
-                />
+                <input className="auth-input" type="email" disabled value={form.email} />
               </div>
             </label>
           </div>
@@ -325,16 +310,14 @@ export default function Profile() {
         </form>
       </div>
 
-      {/* Modal de confirmación de eliminación de cuenta */}
+      {/* Delete Modal */}
       {showDeleteModal && (
         <div className="modal-overlay">
           <div className="modal-card">
             <h3 className="modal-title">Eliminar cuenta</h3>
             <p className="modal-text">
-              Esta acción eliminará permanentemente tu cuenta y no podrá
-              deshacerse. ¿Deseas continuar?
+              Esta acción eliminará permanentemente tu cuenta y no podrá deshacerse. ¿Deseas continuar?
             </p>
-
             <div className="modal-actions">
               <button
                 className="modal-btn modal-btn-cancel"
@@ -353,16 +336,14 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Modal de confirmación de CERRAR SESIÓN */}
+      {/* Logout Modal */}
       {showLogoutModal && (
         <div className="modal-overlay">
           <div className="modal-card">
             <h3 className="modal-title">Cerrar sesión</h3>
             <p className="modal-text">
-              Se cerrará tu sesión actual en Iglú. Podrás volver a iniciar
-              sesión cuando quieras usando tu correo y contraseña.
+              Se cerrará tu sesión actual en Iglú. Podrás volver a iniciar sesión cuando quieras usando tu correo y contraseña.
             </p>
-
             <div className="modal-actions">
               <button
                 className="modal-btn modal-btn-cancel"

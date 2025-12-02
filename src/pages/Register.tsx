@@ -4,17 +4,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-/**
- * Modal — Términos & condiciones
- * (misma idea que el original, solo un poco más compacto)
- */
-function TermsModal({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) {
+function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null;
 
   return (
@@ -32,37 +22,40 @@ function TermsModal({
     >
       <div
         style={{
-          background: "#ffffff",
-          padding: "2rem",
-          maxWidth: "480px",
-          width: "100%",
-          borderRadius: "12px",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
-          maxHeight: "80vh",
-          overflowY: "auto",
-          position: "relative",
+          background: 'white',
+          padding: '2rem',
+          maxWidth: '500px',
+          width: '100%',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          maxHeight: '80vh',
+          overflowY: 'auto',
+          position: 'relative',
         }}
       >
-        <h2 style={{ marginTop: 0 }}>Términos y Condiciones</h2>
-
+        <h2 style={{ marginTop: 0 }}>Términos & Condiciones</h2>
         <p>
-          Este entorno es una plataforma de carácter académico y experimental,
-          diseñada solo para fines formativos y de prueba.
+          Esta plataforma es de carácter académico y experimental, creada únicamente con fines educativos. 
+          No está diseñada para uso comercial ni como parte de un producto final.
         </p>
         <p>
-          Los datos que ingreses se usan exclusivamente para propósitos
-          educativos, pruebas técnicas y análisis interno del sistema.{" "}
-          <strong>No serán vendidos ni usados con fines comerciales.</strong>
+          Los datos que ingreses (nombre, correo electrónico, progreso, respuestas, etc.) se recopilan exclusivamente con fines educativos, de prueba y para análisis internos.
         </p>
         <p>
-          La plataforma se ofrece “tal cual” (as is); puede contener errores o
-          interrupciones. No somos responsables por decisiones que tomes a
-          partir de la información obtenida aquí.
+          Esta información <strong>no se utilizará con fines comerciales</strong>, no se empleará para publicidad y no se venderá a terceros. 
+          Se puede usar para mejorar la plataforma, corregir errores, agregar funcionalidades y evaluar el desempeño académico de manera anónima.
         </p>
         <p>
-          Al registrarte y usar esta plataforma, aceptas explícitamente estos
-          términos. Si no estás de acuerdo, por favor no continúes con el
-          registro.
+          Respetamos tu privacidad. Tu información personal se maneja de manera responsable dentro del alcance de este proyecto académico. 
+          No compartiremos tus datos fuera de la plataforma, salvo para cumplir con obligaciones legales o de seguridad.
+        </p>
+        <p>
+          La plataforma se proporciona “tal cual”. No garantizamos que esté libre de errores ni que funcione de manera ininterrumpida. 
+          No nos hacemos responsables de decisiones tomadas basadas en la información de la plataforma.
+        </p>
+        <p>
+          Al registrarte y usar esta plataforma, aceptas explícitamente estos términos. 
+          Si no estás de acuerdo, por favor no continúes.
         </p>
 
         <button
@@ -84,10 +77,6 @@ function TermsModal({
   );
 }
 
-/**
- * Register
- * Lógica antigua (la que ya funciona en el despliegue) + diseño compacto nuevo.
- */
 export default function Register(): JSX.Element {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -100,11 +89,14 @@ export default function Register(): JSX.Element {
     email: "",
     password: "",
   });
-
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [acceptTerms, setAcceptTerms] = useState<boolean>(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [isTermsOpen, setIsTermsOpen] = useState<boolean>(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+
+  // Estados para mostrar/ocultar contraseña
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // ======= handlers (misma lógica que el código “viejo”) =======
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -126,12 +118,11 @@ export default function Register(): JSX.Element {
 
     // mismas validaciones que tenías
     if (form.password !== confirmPassword) {
-      alert(t("register.passwordMismatch"));
+      setMessage('Las contraseñas no coinciden');
       return;
     }
-
     if (!acceptTerms) {
-      alert(t("register.mustAcceptTerms"));
+      setMessage('Debes aceptar los términos y condiciones');
       return;
     }
 
@@ -152,12 +143,8 @@ export default function Register(): JSX.Element {
         throw new Error(errorData.message || "Error en el registro");
       }
 
-      setMessage("Registro exitoso");
-
-      // igual que antes
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
+      setMessage('Registro exitoso');
+      setTimeout(() => navigate('/login'), 1500);
     } catch (error: any) {
       console.error("Register error:", error);
       setMessage(error.message);
@@ -166,13 +153,13 @@ export default function Register(): JSX.Element {
 
   // ======= UI: diseño compacto como el login nuevo =======
   return (
-    <div className="auth-page auth-page--compact">
-      <div className="auth-wrapper auth-wrapper--compact">
-        <h1 className="auth-title">{t("register.createAccount")}</h1>
-        <p className="auth-subtitle">{t("register.fillForm")}</p>
+    <div className="auth-page" style={{ display: 'flex', justifyContent: 'center', padding: '1rem', position: 'relative' }}>
+      <div className="auth-wrapper" style={{ maxWidth: '500px', width: '100%', margin: '0 auto' }}>
+        <h1 className="auth-title">{t('register.createAccount')}</h1>
+        <p className="auth-subtitle">{t('register.fillForm')}</p>
 
         <form className="auth-card" onSubmit={handleSubmit}>
-          {/* Nombre */}
+          {/* First Name */}
           <label className="auth-label">
             {t("register.firstName")}
             <div className="auth-input-wrapper">
@@ -188,7 +175,7 @@ export default function Register(): JSX.Element {
             </div>
           </label>
 
-          {/* Apellido */}
+          {/* Last Name */}
           <label className="auth-label">
             {t("register.lastName")}
             <div className="auth-input-wrapper">
@@ -204,7 +191,7 @@ export default function Register(): JSX.Element {
             </div>
           </label>
 
-          {/* Edad */}
+          {/* Age */}
           <label className="auth-label">
             {t("register.age")}
             <div className="auth-input-wrapper">
@@ -239,11 +226,12 @@ export default function Register(): JSX.Element {
 
           {/* Password */}
           <label className="auth-label">
-            {t("register.password")}
-            <div className="auth-input-wrapper">
+            {t('register.password')}
+            <div className="auth-input-wrapper" style={{ position: 'relative' }}>
               <span className="auth-input-icon">🔒</span>
               <input
-                type="password"
+                className="auth-input"
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 className="auth-input"
                 placeholder={t("register.placeholderPassword")}
@@ -251,16 +239,33 @@ export default function Register(): JSX.Element {
                 onChange={handleChange}
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.5rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem',
+                }}
+              >
+                {showPassword ? '👁️' : '🙈'}
+              </button>
             </div>
           </label>
 
-          {/* Confirmar password */}
+          {/* Confirm Password */}
           <label className="auth-label">
-            {t("register.confirmPassword")}
-            <div className="auth-input-wrapper">
+            {t('register.confirmPassword')}
+            <div className="auth-input-wrapper" style={{ position: 'relative' }}>
               <span className="auth-input-icon">🔒</span>
               <input
-                type="password"
+                className="auth-input"
+                type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
                 className="auth-input"
                 placeholder={t("register.placeholderConfirmPassword")}
@@ -268,10 +273,26 @@ export default function Register(): JSX.Element {
                 onChange={handleChange}
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.5rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem',
+                }}
+              >
+                {showConfirmPassword ? '👁️' : '🙈'}
+              </button>
             </div>
           </label>
 
-          {/* Aceptar términos */}
+          {/* Terms */}
           <div className="auth-terms-wrapper">
             <label className="auth-terms">
               <input
@@ -318,7 +339,6 @@ export default function Register(): JSX.Element {
         {/* Mensaje de éxito / error (misma lógica que antes) */}
         {message && (
           <div
-            className="simple-message"
             style={{
               marginTop: "1rem",
               padding: "0.6rem 1rem",
