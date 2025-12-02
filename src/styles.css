@@ -1373,3 +1373,187 @@ body {
     flex-direction: column;
   }
 }
+/* ----------------------------------------------- */
+/* 🟦 PROFILE PAGE – mejoras de modo edición y mensajes */
+/* ----------------------------------------------- */
+
+/* Ajustar espaciado vertical solo en la página de perfil */
+.profile-page .auth-wrapper {
+  padding-top: 2.2rem;   /* antes 3.5rem en .auth-wrapper general */
+  padding-bottom: 3rem;  /* un poco menos abajo también */
+}
+
+/* Título y subtítulo en perfil con menos margen para que todo suba */
+.profile-page .auth-title {
+  margin-top: 0;
+  margin-bottom: 0.3rem;
+}
+
+.profile-page .auth-subtitle {
+  margin-top: 0;
+}
+
+/* La tarjeta de perfil un poco más cerca del título */
+.profile-page .profile-card {
+  margin-top: 1.4rem;  /* antes 2.4rem */
+}
+
+
+.profile-card {
+  max-width: 640px;
+  margin-top: 2.4rem;
+  padding: 2.6rem 2.8rem;
+}
+
+/* Cuando está en modo edición, resaltar la tarjeta */
+.profile-card--editing {
+  border: 1px solid var(--teal);
+  box-shadow: 0 20px 40px rgba(12, 90, 100, 0.25);
+  background: #f8fafc;
+}
+
+.profile-error,
+.profile-success {
+  max-width: 640px;
+  margin: 1rem auto 0;
+  font-size: 0.9rem;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+}
+
+.profile-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.profile-success {
+  background: #ecfdf5;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* Header dentro de la tarjeta */
+.profile-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.6rem;
+}
+
+.profile-section-header h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.profile-helper-text {
+  margin-top: 0.25rem;
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+/* Chip de estado */
+.profile-status-pill {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.profile-status-pill--editing {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Grid de inputs */
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem 1.4rem;
+}
+
+/* Cuando se puede editar, resaltar ligeramente el wrapper */
+.profile-input-editable {
+  border-color: #c4f1f5;
+  background: #f9feff;
+}
+
+.profile-input-editable:focus-within {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 1px rgba(12, 90, 100, 0.2);
+}
+
+@media (max-width: 640px) {
+  .profile-card {
+    padding: 2.2rem 1.7rem;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Botones */
+.profile-actions {
+  margin-top: 2.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-primary-btn {
+  box-shadow: 0 14px 30px rgba(12, 90, 100, 0.35);
+}
+
+.profile-primary-btn:hover {
+  filter: brightness(0.96);
+}
+
+.profile-secondary-actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.profile-delete-btn,
+.profile-logout-btn {
+  flex: 1 1 0;
+  border-radius: 999px;
+  border: none;
+  padding: 0.8rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Eliminar cuenta -> botón outline rojo */
+.profile-delete-btn {
+  background: #ffffff;
+  border: 1px solid #f97373;
+  color: #b91c1c;
+}
+
+.profile-delete-btn:hover {
+  background: #fef2f2;
+}
+
+/* Cerrar sesión -> rojo sólido consistente con dashboard */
+.profile-logout-btn {
+  background: #e63946;
+  color: #ffffff;
+}
+
+.profile-logout-btn:hover {
+  background: #b91c1c;
+}
+/* Dentro del grid de perfil, que todos los labels arranquen a la misma altura */
+.profile-grid .auth-label {
+  margin-top: 0;
+}
+
+/* Anular el margen extra entre labels hermanos dentro del grid */
+.profile-grid .auth-label + .auth-label {
+  margin-top: 0;
+}
