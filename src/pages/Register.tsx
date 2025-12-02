@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+// src/pages/Register.tsx
+
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../context/AuthContext";
 
 /**
  * Modal — Términos & condiciones
+ * (misma idea que el original, solo un poco más compacto)
  */
 function TermsModal({
   isOpen,
@@ -30,35 +32,38 @@ function TermsModal({
     >
       <div
         style={{
-          background: "white",
+          background: "#ffffff",
           padding: "2rem",
-          borderRadius: "12px",
           maxWidth: "480px",
           width: "100%",
+          borderRadius: "12px",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
           maxHeight: "80vh",
           overflowY: "auto",
           position: "relative",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
         }}
       >
         <h2 style={{ marginTop: 0 }}>Términos y Condiciones</h2>
 
         <p>
           Este entorno es una plataforma de carácter académico y experimental,
-          diseñada únicamente para fines formativos.
+          diseñada solo para fines formativos y de prueba.
         </p>
-
         <p>
-          Los datos ingresados se usan exclusivamente para pruebas, análisis
-          interno y mejora del sistema.{" "}
+          Los datos que ingreses se usan exclusivamente para propósitos
+          educativos, pruebas técnicas y análisis interno del sistema.{" "}
           <strong>No serán vendidos ni usados con fines comerciales.</strong>
         </p>
-
         <p>
-          La plataforma se ofrece “tal cual”, sin garantías de funcionamiento.
+          La plataforma se ofrece “tal cual” (as is); puede contener errores o
+          interrupciones. No somos responsables por decisiones que tomes a
+          partir de la información obtenida aquí.
         </p>
-
-        <p>Al registrarte, aceptas explícitamente estos términos.</p>
+        <p>
+          Al registrarte y usar esta plataforma, aceptas explícitamente estos
+          términos. Si no estás de acuerdo, por favor no continúes con el
+          registro.
+        </p>
 
         <button
           onClick={onClose}
@@ -80,13 +85,14 @@ function TermsModal({
 }
 
 /**
- * Register Page — Versión compacta y estilizada
+ * Register
+ * Lógica antigua (la que ya funciona en el despliegue) + diseño compacto nuevo.
  */
 export default function Register(): JSX.Element {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { user } = useAuth();
 
+  // ======= estado (igual que en tu versión que funciona) =======
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -95,32 +101,30 @@ export default function Register(): JSX.Element {
     password: "",
   });
 
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [acceptTerms, setAcceptTerms] = useState(false);
-
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [acceptTerms, setAcceptTerms] = useState<boolean>(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState<boolean>(false);
 
-  // 👁️ estados para mostrar/ocultar contraseñas
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Si ya inició sesión → no debe ver esta página
-  useEffect(() => {
-    if (user) navigate("/dashboard");
-  }, [user, navigate]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ======= handlers (misma lógica que el código “viejo”) =======
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value, checked } = e.target;
 
-    if (name === "confirmPassword") setConfirmPassword(value);
-    else if (name === "acceptTerms") setAcceptTerms(checked);
-    else setForm((prev) => ({ ...prev, [name]: value }));
+    if (name === "confirmPassword") {
+      setConfirmPassword(value);
+    } else if (name === "acceptTerms") {
+      setAcceptTerms(checked);
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
 
+    // mismas validaciones que tenías
     if (form.password !== confirmPassword) {
       alert(t("register.passwordMismatch"));
       return;
@@ -134,7 +138,7 @@ export default function Register(): JSX.Element {
     try {
       const payload = { ...form, age: Number(form.age) };
 
-      const res = await fetch(
+      const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/auth/register`,
         {
           method: "POST",
@@ -143,19 +147,24 @@ export default function Register(): JSX.Element {
         }
       );
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Error en el registro");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error en el registro");
       }
 
       setMessage("Registro exitoso");
 
-      setTimeout(() => navigate("/login"), 1500);
-    } catch (err: any) {
-      setMessage(err.message);
+      // igual que antes
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+    } catch (error: any) {
+      console.error("Register error:", error);
+      setMessage(error.message);
     }
   };
 
+  // ======= UI: diseño compacto como el login nuevo =======
   return (
     <div className="auth-page auth-page--compact">
       <div className="auth-wrapper auth-wrapper--compact">
@@ -228,16 +237,13 @@ export default function Register(): JSX.Element {
             </div>
           </label>
 
-          {/* Password con ver/ocultar */}
+          {/* Password */}
           <label className="auth-label">
             {t("register.password")}
-            <div
-              className="auth-input-wrapper"
-              style={{ position: "relative" }}
-            >
+            <div className="auth-input-wrapper">
               <span className="auth-input-icon">🔒</span>
               <input
-                type={showPassword ? "text" : "password"}
+                type="password"
                 name="password"
                 className="auth-input"
                 placeholder={t("register.placeholderPassword")}
@@ -245,38 +251,16 @@ export default function Register(): JSX.Element {
                 onChange={handleChange}
                 required
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={
-                  showPassword ? "Ocultar contraseña" : "Ver contraseña"
-                }
-                style={{
-                  position: "absolute",
-                  right: "10px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  fontSize: "1.2rem",
-                }}
-              >
-                {showPassword ? "🙈" : "👁️"}
-              </button>
             </div>
           </label>
 
-          {/* Confirmar password con ver/ocultar */}
+          {/* Confirmar password */}
           <label className="auth-label">
             {t("register.confirmPassword")}
-            <div
-              className="auth-input-wrapper"
-              style={{ position: "relative" }}
-            >
+            <div className="auth-input-wrapper">
               <span className="auth-input-icon">🔒</span>
               <input
-                type={showConfirmPassword ? "text" : "password"}
+                type="password"
                 name="confirmPassword"
                 className="auth-input"
                 placeholder={t("register.placeholderConfirmPassword")}
@@ -284,29 +268,6 @@ export default function Register(): JSX.Element {
                 onChange={handleChange}
                 required
               />
-              <button
-                type="button"
-                onClick={() =>
-                  setShowConfirmPassword((prev) => !prev)
-                }
-                aria-label={
-                  showConfirmPassword
-                    ? "Ocultar confirmación de contraseña"
-                    : "Ver confirmación de contraseña"
-                }
-                style={{
-                  position: "absolute",
-                  right: "10px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  fontSize: "1.2rem",
-                }}
-              >
-                {showConfirmPassword ? "🙈" : "👁️"}
-              </button>
             </div>
           </label>
 
@@ -332,12 +293,17 @@ export default function Register(): JSX.Element {
             </label>
           </div>
 
-          <button type="submit" className="auth-submit">
+          {/* Botón registrar */}
+          <button
+            type="submit"
+            className="auth-submit"
+            style={{ marginTop: "1.3rem" }}
+          >
             {t("register.registerButton")}
           </button>
 
           {/* Ir a login */}
-          <p className="auth-bottom-text">
+          <p className="auth-bottom-text" style={{ marginTop: "1.2rem" }}>
             {t("register.alreadyHaveAccount")}{" "}
             <button
               type="button"
@@ -349,6 +315,7 @@ export default function Register(): JSX.Element {
           </p>
         </form>
 
+        {/* Mensaje de éxito / error (misma lógica que antes) */}
         {message && (
           <div
             className="simple-message"

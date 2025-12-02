@@ -1,8 +1,6 @@
 /**
- * Login.tsx — versión mejorada con:
- * ✔ Ver/ocultar contraseña
- * ✔ Mensaje de error estilizado
- * ✔ Error desaparece automáticamente en 7 segundos
+ * Login.tsx
+ * Lógica antigua (probada en deploy) + diseño nuevo compacto
  */
 
 import React, { useState, useEffect } from "react";
@@ -14,11 +12,11 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
 } from "firebase/auth";
-import axios from "axios";
 import { auth } from "../firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 
-// ==================== Icons ====================
+// ==================== Iconos ====================
+
 const GoogleIcon: React.FC = () => (
   <svg width="18" height="18" viewBox="0 0 533.5 544.3">
     <path
@@ -53,12 +51,12 @@ const FacebookIcon: React.FC = () => (
   </svg>
 );
 
-// ==================== Component ====================
+// ==================== Componente ====================
+
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-
   const { loginFirebase, user } = useAuth();
 
   const [form, setForm] = useState({
@@ -66,28 +64,18 @@ export default function Login(): JSX.Element {
     password: "",
     remember: true,
   });
-
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Banner cuando viene de eliminar cuenta (si lo usas)
   const accountDeleted =
     (location.state as { deleted?: boolean } | null)?.deleted || false;
 
-  // Si ya está autenticado, no debe ver login
+  // Si ya inició sesión -> redirigir
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
-
-  // Hace que el mensaje desaparezca después de 7 segundos
-  useEffect(() => {
-    if (loginError) {
-      const timer = setTimeout(() => {
-        setLoginError(null);
-      }, 7000);
-      return () => clearTimeout(timer);
-    }
-  }, [loginError]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -97,11 +85,11 @@ export default function Login(): JSX.Element {
     }));
   };
 
-  // ==================== Login email/password ====================
+  // ==================== Email/Password (misma lógica que antes) ====================
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setLoginError(null);
+    setErrorMsg(null);
 
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -109,85 +97,80 @@ export default function Login(): JSX.Element {
         form.email,
         form.password
       );
-
       loginFirebase(userCredential.user);
       navigate("/dashboard");
-
     } catch (error: any) {
-      let msg = "Error de inicio de sesión.";
+      console.error("Login error:", error);
+
+      let niceMsg = "Error de inicio de sesión. Verifica tu correo y contraseña.";
 
       if (error.code === "auth/user-not-found") {
-        msg = "No existe una cuenta con este correo.";
+        niceMsg = "Usuario no encontrado.";
       } else if (error.code === "auth/wrong-password") {
-        msg = "Contraseña incorrecta.";
-      } else if (error.code === "auth/invalid-email") {
-        msg = "El correo no es válido.";
+        niceMsg = "Contraseña incorrecta.";
       }
 
-      setLoginError(msg);
+      setErrorMsg(niceMsg);
+
+      // Ocultar mensaje a los 7s
+      setTimeout(() => setErrorMsg(null), 7000);
     } finally {
       setLoading(false);
     }
   };
 
-  // ==================== Google Login ====================
-  const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/api/auth/google";
+  // ==================== Google login (misma lógica que antes) ====================
+  const handleGoogleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      loginFirebase(result.user);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Google login error:", error);
+      setErrorMsg("Error al iniciar sesión con Google.");
+      setTimeout(() => setErrorMsg(null), 7000);
+    }
   };
 
-  // ==================== Facebook Login ====================
+  // ==================== Facebook login (misma lógica que antes) ====================
   const handleFacebookLogin = async () => {
     try {
       const provider = new FacebookAuthProvider();
       const result = await signInWithPopup(auth, provider);
-
       loginFirebase(result.user);
-
-      await axios.post(`http://localhost:5000/api/auth/facebook/callback`, {
-        uid: result.user.uid,
-        email: result.user.email,
-        displayName: result.user.displayName,
-      });
-
       navigate("/dashboard");
-    } catch {
-      setLoginError("Login con Facebook fallido.");
+    } catch (error) {
+      console.error("Facebook login error:", error);
+      setErrorMsg("Error al iniciar sesión con Facebook.");
+      setTimeout(() => setErrorMsg(null), 7000);
     }
   };
 
   return (
     <div className="auth-page auth-page--compact">
       <div className="auth-wrapper auth-wrapper--compact">
-        <h1 className="auth-title">Bienvenido de nuevo</h1>
-        <p className="auth-subtitle">Inicia sesión para continuar</p>
+        <h1 className="auth-title">{t("login.welcomeBack")}</h1>
+        <p className="auth-subtitle">{t("login.loginSubtitle")}</p>
 
-        {/* Banner si viene de eliminar cuenta */}
+        {/* Banner éxito eliminación de cuenta */}
         {accountDeleted && (
-          <div className="login-success-banner">✔ Tu cuenta fue eliminada correctamente.</div>
+          <div className="login-success-banner">
+            ✔ Tu cuenta fue eliminada correctamente.
+          </div>
         )}
 
-        {/* ERROR MEJORADO */}
-        {loginError && (
-          <div
-            style={{
-              marginTop: "1rem",
-              padding: "0.8rem 1rem",
-              borderRadius: "8px",
-              backgroundColor: "#fdecea",
-              color: "#b71c1c",
-              fontSize: "0.95rem",
-              border: "1px solid #f5c2c0",
-              textAlign: "center",
-            }}
-          >
-            ⚠️ {loginError}
+        {/* Banner de error bonito */}
+        {errorMsg && (
+          <div className="login-error-banner">
+            <span>{errorMsg}</span>
           </div>
         )}
 
         <form className="auth-card" onSubmit={handleSubmit}>
           {/* Email */}
           <label className="auth-label">
-            Correo electrónico
+            {t("login.email")}
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">@</span>
               <input
@@ -195,42 +178,31 @@ export default function Login(): JSX.Element {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                placeholder="ejemplo@correo.com"
+                placeholder={t("login.placeholderEmail")}
                 className="auth-input"
                 required
               />
             </div>
           </label>
 
-          {/* Contraseña con botón de ver */}
+          {/* Contraseña con ver/ocultar */}
           <label className="auth-label">
-            Contraseña
-            <div className="auth-input-wrapper" style={{ position: "relative" }}>
+            {t("login.password")}
+            <div className="auth-input-wrapper">
               <span className="auth-input-icon">🔒</span>
-
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                placeholder="********"
+                placeholder={t("login.placeholderPassword")}
                 className="auth-input"
                 required
               />
-
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: "10px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "1.3rem",
-                }}
+                className="auth-input-toggle"
+                onClick={() => setShowPassword((prev) => !prev)}
               >
                 {showPassword ? "🙈" : "👁️"}
               </button>
@@ -245,7 +217,7 @@ export default function Login(): JSX.Element {
                 checked={form.remember}
                 onChange={handleChange}
               />
-              Recordarme
+              <span>{t("login.rememberMe")}</span>
             </label>
 
             <button
@@ -253,34 +225,52 @@ export default function Login(): JSX.Element {
               className="auth-link"
               onClick={() => navigate("/forgot-password")}
             >
-              ¿Olvidaste tu contraseña?
+              {t("login.forgotPassword")}
             </button>
           </div>
 
+          {/* Botón iniciar sesión */}
           <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? "Iniciando..." : "Iniciar sesión"}
+            {loading ? "Iniciando..." : t("login.loginButton")}
           </button>
 
+          {/* Divider */}
           <div className="auth-divider">
             <span className="auth-divider-line" />
-            <span className="auth-divider-text">o continuar con</span>
+            <span className="auth-divider-text">
+              {t("login.orContinueWith")}
+            </span>
             <span className="auth-divider-line" />
           </div>
 
+          {/* Social login */}
           <div className="auth-social-row">
-            <button type="button" className="auth-social auth-social-google" onClick={handleGoogleLogin}>
-              <GoogleIcon /> <span>Google</span>
+            <button
+              type="button"
+              className="auth-social auth-social-google"
+              onClick={handleGoogleLogin}
+            >
+              <GoogleIcon /> <span>{t("login.google")}</span>
             </button>
 
-            <button type="button" className="auth-social auth-social-facebook" onClick={handleFacebookLogin}>
-              <FacebookIcon /> <span>Facebook</span>
+            <button
+              type="button"
+              className="auth-social auth-social-facebook"
+              onClick={handleFacebookLogin}
+            >
+              <FacebookIcon /> <span>{t("login.facebook")}</span>
             </button>
           </div>
 
-          <p className="auth-bottom-text">
-            ¿Aún no tienes cuenta?{" "}
-            <button type="button" className="auth-link" onClick={() => navigate("/register")}>
-              Crear una cuenta
+          {/* Ir a registro */}
+          <p className="auth-bottom-text" style={{ marginTop: "1.4rem" }}>
+            {t("login.noAccount")}{" "}
+            <button
+              type="button"
+              className="auth-link"
+              onClick={() => navigate("/register")}
+            >
+              {t("login.register")}
             </button>
           </p>
         </form>
