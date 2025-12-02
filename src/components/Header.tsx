@@ -1,8 +1,7 @@
 /**
  * Header.tsx
  *
- * UPDATED: All pre-login buttons consistent.
- * "Crear Reunión" post-login highlighted.
+ * Versión sin el botón "Crear Reunión" en el header.
  */
 
 import React from "react";
@@ -27,7 +26,7 @@ export default function Header() {
             <span className="header-loading">Cargando sesión...</span>
           ) : user ? (
             <>
-              {/* After login */}
+              {/* Después de login */}
               <span className="user-welcome">
                 Hola {user.email?.split("@")[0]} 👋
               </span>
@@ -36,12 +35,7 @@ export default function Header() {
                 Reuniones
               </Link>
 
-              <Link
-                to="/crear-reunion"
-                className="btn-pill btn-pill--solid" // destacado
-              >
-                Crear Reunión
-              </Link>
+              {/* Botón "Crear Reunión" eliminado del header */}
 
               <Link to="/profile" className="btn-pill btn-pill--outline">
                 Perfil
@@ -56,7 +50,7 @@ export default function Header() {
             </>
           ) : (
             <>
-              {/* Before login → all same style */}
+              {/* Antes de login */}
               <Link to="/about-us" className="btn-pill btn-pill--outline">
                 Sobre Nosotros
               </Link>
