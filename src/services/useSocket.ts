@@ -3,33 +3,54 @@
  * React Hook for connecting the client to the chat websocket server.
  */
 
-import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
-import { ENV } from "../config/env";
+import { auth } from "../firebaseConfig";
 
-export const useSocket = (roomId: string) => {
-  const socketRef = useRef<Socket | null>(null);
+let socket: Socket | null = null;
 
-  useEffect(() => {
-    const socket = io(ENV.CHAT_SERVER_URL, {
-      query: { roomId },
+export async function getSocket() {
+  // Si ya existe y está conectado → úsalo
+  if (socket && socket.connected) return socket;
+
+  // Asegurar usuario autenticado
+  const user = auth.currentUser;
+  if (!user) throw new Error("Usuario no autenticado");
+
+  // 🔥 REFRESCAR TOKEN SIEMPRE
+  const token = await user.getIdToken(true); // <-- fuerza refresh
+
+  // Crear instancia si no existe
+  if (!socket) {
+    socket = io("http://localhost:5001", {
+      autoConnect: false,
       transports: ["websocket"],
     });
 
-    socketRef.current = socket;
-
+    // LOGS
     socket.on("connect", () => {
-      console.log("🔌 Connected to chat server");
+      console.log("✅ Socket conectado:", socket?.id);
     });
 
-    socket.on("disconnect", () => {
-      console.log("❌ Disconnected from chat server");
+    socket.on("connect_error", async (err: any) => {
+      console.error("❌ Error de conexión Socket:", err.message);
+
+      // Si token expiró → refrescar y reconectar
+      if (err?.message?.includes("id-token-expired")) {
+        console.warn("🔄 Token expirado. Intentando refrescar...");
+
+        const newToken = await user.getIdToken(true);
+        socket!.auth = { token: newToken };
+
+        socket!.connect();
+      }
     });
+  }
 
-    return () => {
-      socket.disconnect();
-    };
-  }, [roomId]);
+  // Asignar auth con token nuevo antes de conectar
+  socket.auth = { token };
 
-  return socketRef.current;
-};
+  // Conectar
+  socket.connect();
+
+  return socket;
+}

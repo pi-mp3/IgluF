@@ -1,9 +1,21 @@
-// src/pages/api.ts
+/**
+ * src/pages/api.ts
+ *
+ * API SERVICE — FRONTEND
+ * Documentation: English comments
+ * User messages: Español
+ */
+
 import { http } from "../api/http";
+import { User } from "../models/User";
 
 /**
- * Interface for user registration data
+ * ============================================================
+ *  API SERVICE FUNCTIONS
+ * ============================================================
  */
+
+// Interface for user registration data
 export interface RegisterData {
   firstName: string;
   lastName: string;
@@ -12,17 +24,13 @@ export interface RegisterData {
   password: string;
 }
 
-/**
- * Interface for user login data
- */
+// Interface for user login data
 export interface LoginData {
   email: string;
   password: string;
 }
 
-/**
- * Interface for editing user data
- */
+// Interface for editing user data
 export interface EditUserData {
   firstName?: string;
   lastName?: string;
@@ -33,162 +41,166 @@ export interface EditUserData {
 /**
  * Registers a new user.
  * Backend route: POST /auth/register
- *
- * @param userData - Object containing user registration data
- * @returns Backend response
  */
 export const registerUser = async (userData: RegisterData) => {
   try {
     const res = await http.post("/auth/register", userData);
     return res.data;
   } catch (err: any) {
-    throw new Error(err.response?.data?.message || "Error registrando el usuario");
+    throw new Error(
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Error registrando el usuario"
+    );
   }
 };
 
 /**
  * Logs in a user with email/password.
  * Backend route: POST /auth/login
- *
- * @param credentials - Object with email and password
- * @returns Backend response
  */
 export const loginUser = async (credentials: LoginData) => {
   try {
     const res = await http.post("/auth/login", credentials);
     return res.data;
   } catch (err: any) {
-    throw new Error(err.response?.data?.message || "Error iniciando sesión");
+    throw new Error(
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Error iniciando sesión"
+    );
   }
 };
 
 /**
- * Google OAuth login.
- * Backend route: POST /auth/login/google
- *
- * @param idToken - Google ID token
- * @returns Backend response
+ * Redirects user to Google OAuth login.
+ * Backend route: GET /auth/google
+ * NOTE: frontend must handle redirect flow
  */
-export const loginGoogle = async (idToken: string) => {
+export const loginGoogle = () => {
+  window.location.href = `${http.defaults.baseURL}/auth/google`;
+};
+
+/**
+ * Handles Facebook OAuth login.
+ * Sends user data to backend callback.
+ * Backend route: POST /auth/facebook/callback
+ */
+export const loginFacebook = async (userData: { uid: string; email: string; displayName: string }) => {
   try {
-    const res = await http.post("/auth/login/google", { idToken });
+    const res = await http.post("/auth/facebook/callback", userData);
     return res.data;
   } catch (err: any) {
-    throw new Error(err.response?.data?.message || "Error iniciando sesión con Google");
+    throw new Error(
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Error iniciando sesión con Facebook"
+    );
   }
 };
 
 /**
- * Facebook OAuth login.
- * Backend route: POST /auth/login/facebook
- *
- * @param accessToken - Facebook access token
- * @returns Backend response
- */
-export const loginFacebook = async (accessToken: string) => {
-  try {
-    const res = await http.post("/auth/login/facebook", { accessToken });
-    return res.data;
-  } catch (err: any) {
-    throw new Error(err.response?.data?.message || "Error iniciando sesión con Facebook");
-  }
-};
-
-/**
- * Sends a password recovery email.
+ * Sends password recovery email.
  * Backend route: POST /recover/user/send-reset-email
- *
- * @param email - Email address to send recovery instructions
- * @returns Backend response
  */
 export const recoverPassword = async (email: string) => {
   try {
     const res = await http.post("/recover/user/send-reset-email", { email });
     return res.data;
   } catch (err: any) {
-    throw new Error(err.response?.data?.message || "Error enviando correo de recuperación");
+    throw new Error(
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Error enviando correo de recuperación"
+    );
   }
 };
 
 /**
  * Resets user password.
  * Backend route: POST /recover/user/reset-password
- *
- * @param email - User email
- * @param newPassword - New password
- * @param token - Recovery token from email
- * @returns Backend response
  */
 export const resetPassword = async (email: string, newPassword: string, token: string) => {
   try {
     const res = await http.post("/recover/user/reset-password", { email, newPassword, token });
     return res.data;
   } catch (err: any) {
-    throw new Error(err.response?.data?.message || "Error actualizando la contraseña");
+    throw new Error(
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Error actualizando la contraseña"
+    );
   }
 };
 
 /**
- * Logs out the current user.
+ * Logs out user.
  * Backend route: POST /auth/logout
- *
- * Frontend should also remove tokens/session after this call.
- * @returns Backend response
  */
 export const logoutUser = async () => {
   try {
     const res = await http.post("/auth/logout");
     return res.data;
   } catch (err: any) {
-    throw new Error(err.response?.data?.message || "Error cerrando sesión");
+    throw new Error(
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Error cerrando sesión"
+    );
   }
 };
 
 /**
- * Updates user account by ID.
+ * Updates user by ID.
  * Backend route: PUT /user/:id
- *
- * @param id - User ID
- * @param data - Object with editable fields
- * @returns Backend response
  */
 export const updateUser = async (id: string, data: EditUserData) => {
   try {
     const res = await http.put(`/user/${id}`, data);
     return res.data;
   } catch (err: any) {
-    throw new Error(err.response?.data?.message || "Error actualizando usuario");
+    throw new Error(
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Error actualizando usuario"
+    );
   }
 };
 
 /**
- * Deletes user account by ID.
+ * Deletes user by ID.
  * Backend route: DELETE /user/:id
- *
- * @param id - User ID
- * @returns Backend response
  */
 export const deleteUser = async (id: string) => {
   try {
     const res = await http.delete(`/user/${id}`);
     return res.data;
   } catch (err: any) {
-    throw new Error(err.response?.data?.message || "Error eliminando usuario");
+    throw new Error(
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Error eliminando usuario"
+    );
   }
 };
 
 /**
- * Gets user data by ID.
+ * Gets user by ID (UID).
  * Backend route: GET /user/:id
  *
- * @param id - User ID
- * @returns User data
+ * ❗ IMPORTANT:
+ * This ONLY calls the backend.
+ * It does NOT include any logic or controllers.
  */
-export const getUserById = async (id: string) => {
+export const getUser = async (id: string) => {
   try {
     const res = await http.get(`/user/${id}`);
     return res.data;
   } catch (err: any) {
-    throw new Error(err.response?.data?.message || "Error obteniendo datos del usuario");
+    throw new Error(
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Error obteniendo usuario"
+    );
   }
 };
