@@ -44,6 +44,7 @@ export default function Profile() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);

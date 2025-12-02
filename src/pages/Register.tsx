@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+// src/pages/Register.tsx
+
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null;
@@ -8,17 +10,14 @@ function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
   return (
     <div
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "1rem",
         zIndex: 1000,
-        padding: '1rem',
       }}
     >
       <div
@@ -62,13 +61,13 @@ function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
         <button
           onClick={onClose}
           style={{
-            position: 'absolute',
-            top: '10px',
-            right: '10px',
-            background: 'none',
-            border: 'none',
-            fontSize: '1.4rem',
-            cursor: 'pointer',
+            position: "absolute",
+            top: 10,
+            right: 10,
+            fontSize: "1.3rem",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
           }}
         >
           ×
@@ -82,12 +81,13 @@ export default function Register(): JSX.Element {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  // ======= estado (igual que en tu versión que funciona) =======
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    age: '',
-    email: '',
-    password: '',
+    firstName: "",
+    lastName: "",
+    age: "",
+    email: "",
+    password: "",
   });
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -98,20 +98,25 @@ export default function Register(): JSX.Element {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // ======= handlers (misma lógica que el código “viejo”) =======
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value, checked } = e.target;
-    if (name === 'confirmPassword') {
+
+    if (name === "confirmPassword") {
       setConfirmPassword(value);
-    } else if (name === 'acceptTerms') {
+    } else if (name === "acceptTerms") {
       setAcceptTerms(checked);
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
 
+    // mismas validaciones que tenías
     if (form.password !== confirmPassword) {
       setMessage('Las contraseñas no coinciden');
       return;
@@ -123,25 +128,30 @@ export default function Register(): JSX.Element {
 
     try {
       const payload = { ...form, age: Number(form.age) };
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Error en el registro');
+        throw new Error(errorData.message || "Error en el registro");
       }
 
       setMessage('Registro exitoso');
       setTimeout(() => navigate('/login'), 1500);
     } catch (error: any) {
-      console.error('Register error:', error);
+      console.error("Register error:", error);
       setMessage(error.message);
     }
   };
 
+  // ======= UI: diseño compacto como el login nuevo =======
   return (
     <div className="auth-page" style={{ display: 'flex', justifyContent: 'center', padding: '1rem', position: 'relative' }}>
       <div className="auth-wrapper" style={{ maxWidth: '500px', width: '100%', margin: '0 auto' }}>
@@ -151,13 +161,13 @@ export default function Register(): JSX.Element {
         <form className="auth-card" onSubmit={handleSubmit}>
           {/* First Name */}
           <label className="auth-label">
-            {t('register.firstName')}
+            {t("register.firstName")}
             <div className="auth-input-wrapper">
               <input
-                className="auth-input"
                 type="text"
                 name="firstName"
-                placeholder={t('register.placeholderFirstName')}
+                className="auth-input"
+                placeholder={t("register.placeholderFirstName")}
                 value={form.firstName}
                 onChange={handleChange}
                 required
@@ -167,13 +177,13 @@ export default function Register(): JSX.Element {
 
           {/* Last Name */}
           <label className="auth-label">
-            {t('register.lastName')}
+            {t("register.lastName")}
             <div className="auth-input-wrapper">
               <input
-                className="auth-input"
                 type="text"
                 name="lastName"
-                placeholder={t('register.placeholderLastName')}
+                className="auth-input"
+                placeholder={t("register.placeholderLastName")}
                 value={form.lastName}
                 onChange={handleChange}
                 required
@@ -183,13 +193,13 @@ export default function Register(): JSX.Element {
 
           {/* Age */}
           <label className="auth-label">
-            {t('register.age')}
+            {t("register.age")}
             <div className="auth-input-wrapper">
               <input
-                className="auth-input"
                 type="number"
                 name="age"
-                placeholder={t('register.placeholderAge')}
+                className="auth-input"
+                placeholder={t("register.placeholderAge")}
                 value={form.age}
                 onChange={handleChange}
                 required
@@ -199,14 +209,14 @@ export default function Register(): JSX.Element {
 
           {/* Email */}
           <label className="auth-label">
-            {t('register.email')}
+            {t("register.email")}
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">@</span>
               <input
-                className="auth-input"
                 type="email"
                 name="email"
-                placeholder={t('register.placeholderEmail')}
+                className="auth-input"
+                placeholder={t("register.placeholderEmail")}
                 value={form.email}
                 onChange={handleChange}
                 required
@@ -223,7 +233,8 @@ export default function Register(): JSX.Element {
                 className="auth-input"
                 type={showPassword ? 'text' : 'password'}
                 name="password"
-                placeholder={t('register.placeholderPassword')}
+                className="auth-input"
+                placeholder={t("register.placeholderPassword")}
                 value={form.password}
                 onChange={handleChange}
                 required
@@ -256,7 +267,8 @@ export default function Register(): JSX.Element {
                 className="auth-input"
                 type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
-                placeholder={t('register.placeholderConfirmPassword')}
+                className="auth-input"
+                placeholder={t("register.placeholderConfirmPassword")}
                 value={confirmPassword}
                 onChange={handleChange}
                 required
@@ -282,60 +294,59 @@ export default function Register(): JSX.Element {
 
           {/* Terms */}
           <div className="auth-terms-wrapper">
-            <label className="auth-terms" style={{ display: 'flex', alignItems: 'center' }}>
+            <label className="auth-terms">
               <input
                 type="checkbox"
                 name="acceptTerms"
                 checked={acceptTerms}
                 onChange={handleChange}
-                style={{ marginRight: '0.5rem' }}
               />
               <span>
-                {t('register.acceptTerms')}{' '}
+                {t("register.acceptTerms")}{" "}
                 <button
                   type="button"
+                  className="auth-link"
                   onClick={() => setIsTermsOpen(true)}
-                  style={{
-                    textDecoration: 'underline',
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    color: '#05668D',
-                    cursor: 'pointer',
-                  }}
                 >
-                  {t('register.termsAndConditions')}
+                  {t("register.termsAndConditions")}
                 </button>
               </span>
             </label>
           </div>
 
-          <button type="submit" className="auth-submit" style={{ marginTop: '1rem' }}>
-            {t('register.registerButton')}
+          {/* Botón registrar */}
+          <button
+            type="submit"
+            className="auth-submit"
+            style={{ marginTop: "1.3rem" }}
+          >
+            {t("register.registerButton")}
           </button>
 
-          <p className="auth-bottom-text" style={{ marginTop: '1rem' }}>
-            {t('register.alreadyHaveAccount')}{' '}
+          {/* Ir a login */}
+          <p className="auth-bottom-text" style={{ marginTop: "1.2rem" }}>
+            {t("register.alreadyHaveAccount")}{" "}
             <button
               type="button"
               className="auth-link"
-              onClick={() => navigate('/login')}
-              style={{ background: 'none', border: 'none', padding: 0, color: '#05668D', cursor: 'pointer' }}
+              onClick={() => navigate("/login")}
             >
-              {t('register.login')}
+              {t("register.login")}
             </button>
           </p>
         </form>
 
+        {/* Mensaje de éxito / error (misma lógica que antes) */}
         {message && (
           <div
             style={{
-              marginTop: '1rem',
-              padding: '0.5rem 1rem',
-              backgroundColor: message === 'Registro exitoso' ? '#d4edda' : '#f8d7da',
-              color: message === 'Registro exitoso' ? '#155724' : '#721c24',
-              borderRadius: '4px',
-              textAlign: 'center',
+              marginTop: "1rem",
+              padding: "0.6rem 1rem",
+              borderRadius: "6px",
+              background:
+                message === "Registro exitoso" ? "#d4edda" : "#f8d7da",
+              color: message === "Registro exitoso" ? "#155724" : "#721c24",
+              textAlign: "center",
             }}
           >
             {message}
