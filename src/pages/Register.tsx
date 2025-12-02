@@ -2,14 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-/**
- * Modal component to display Terms & Conditions.
- *
- * @param props - Props for the modal.
- * @param props.isOpen - Whether the modal is visible.
- * @param props.onClose - Callback to close the modal.
- * @returns The modal JSX or null if not open.
- */
 function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null;
 
@@ -33,34 +25,40 @@ function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
         style={{
           background: 'white',
           padding: '2rem',
-          maxWidth: '480px',
+          maxWidth: '500px',
           width: '100%',
           borderRadius: '8px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
           maxHeight: '80vh',
           overflowY: 'auto',
           position: 'relative',
         }}
       >
-        <h2 style={{ marginTop: 0 }}>Términos y Condiciones</h2>
+        <h2 style={{ marginTop: 0 }}>Términos & Condiciones</h2>
         <p>
-          Este entorno es una plataforma de carácter académico y experimental, diseñada para fines formativos solamente. Su uso no pretende generar beneficios comerciales ni ser parte de un producto final.
+          Esta plataforma es de carácter académico y experimental, creada únicamente con fines educativos. 
+          No está diseñada para uso comercial ni como parte de un producto final.
         </p>
         <p>
-          Los datos que los usuarios ingresan (como su nombre, correo, progreso, respuestas, etc.) se recolectan exclusivamente para propósitos educativos, de prueba y análisis interno.
+          Los datos que ingreses (nombre, correo electrónico, progreso, respuestas, etc.) se recopilan exclusivamente con fines educativos, de prueba y para análisis internos.
         </p>
         <p>
-          Estos datos <strong>no serán utilizados con fines comerciales</strong>, publicitarios ni serán vendidos a terceros. La información puede usarse para mejorar la plataforma, corregir errores, agregar funcionalidades y evaluar el rendimiento académico de forma anónima.
+          Esta información <strong>no se utilizará con fines comerciales</strong>, no se empleará para publicidad y no se venderá a terceros. 
+          Se puede usar para mejorar la plataforma, corregir errores, agregar funcionalidades y evaluar el desempeño académico de manera anónima.
         </p>
         <p>
-          Respetamos la privacidad de cada usuario. Toda la información personal se maneja con responsabilidad dentro del marco de este proyecto académico. No compartiremos tus datos con entidades externas para ningún otro fin distinto al formativo, salvo que sea necesario para cumplir con obligaciones legales o de seguridad.
+          Respetamos tu privacidad. Tu información personal se maneja de manera responsable dentro del alcance de este proyecto académico. 
+          No compartiremos tus datos fuera de la plataforma, salvo para cumplir con obligaciones legales o de seguridad.
         </p>
         <p>
-          La plataforma se ofrece “tal cual” (as is). No garantizamos que estará libre de errores ni de interrupciones. No somos responsables por decisiones que tomes con base en la información o resultados obtenidos en este entorno, ya que es una herramienta de simulación / prueba.
+          La plataforma se proporciona “tal cual”. No garantizamos que esté libre de errores ni que funcione de manera ininterrumpida. 
+          No nos hacemos responsables de decisiones tomadas basadas en la información de la plataforma.
         </p>
         <p>
-          Al registrarte y usar esta plataforma, aceptas explícitamente estos términos y condiciones. Si no estás de acuerdo con alguna parte, por favor no continúes con el registro.
+          Al registrarte y usar esta plataforma, aceptas explícitamente estos términos. 
+          Si no estás de acuerdo, por favor no continúes.
         </p>
+
         <button
           onClick={onClose}
           style={{
@@ -80,13 +78,6 @@ function TermsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
   );
 }
 
-/**
- * Registration form component for creating a new user account.
- * Handles form submission, password confirmation, and terms acceptance.
- *
- * @component
- * @returns {JSX.Element} - The registration page UI.
- */
 export default function Register(): JSX.Element {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -98,11 +89,14 @@ export default function Register(): JSX.Element {
     email: '',
     password: '',
   });
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [acceptTerms, setAcceptTerms] = useState<boolean>(false);
-
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [isTermsOpen, setIsTermsOpen] = useState<boolean>(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+
+  // Estados para mostrar/ocultar contraseña
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value, checked } = e.target;
@@ -119,12 +113,11 @@ export default function Register(): JSX.Element {
     e.preventDefault();
 
     if (form.password !== confirmPassword) {
-      alert(t('register.passwordMismatch'));
+      setMessage('Las contraseñas no coinciden');
       return;
     }
-
     if (!acceptTerms) {
-      alert(t('register.mustAcceptTerms'));
+      setMessage('Debes aceptar los términos y condiciones');
       return;
     }
 
@@ -142,9 +135,7 @@ export default function Register(): JSX.Element {
       }
 
       setMessage('Registro exitoso');
-      setTimeout(() => {
-        navigate('/login');
-      }, 1500);
+      setTimeout(() => navigate('/login'), 1500);
     } catch (error: any) {
       console.error('Register error:', error);
       setMessage(error.message);
@@ -152,27 +143,13 @@ export default function Register(): JSX.Element {
   };
 
   return (
-    <div
-      className="auth-page"
-      style={{
-        position: 'relative',
-        padding: '1rem',
-        display: 'flex',
-        justifyContent: 'center',
-      }}
-    >
-      <div
-        className="auth-wrapper"
-        style={{
-          maxWidth: '500px',
-          width: '100%',
-          margin: '0 auto',
-        }}
-      >
+    <div className="auth-page" style={{ display: 'flex', justifyContent: 'center', padding: '1rem', position: 'relative' }}>
+      <div className="auth-wrapper" style={{ maxWidth: '500px', width: '100%', margin: '0 auto' }}>
         <h1 className="auth-title">{t('register.createAccount')}</h1>
         <p className="auth-subtitle">{t('register.fillForm')}</p>
 
         <form className="auth-card" onSubmit={handleSubmit}>
+          {/* First Name */}
           <label className="auth-label">
             {t('register.firstName')}
             <div className="auth-input-wrapper">
@@ -188,6 +165,7 @@ export default function Register(): JSX.Element {
             </div>
           </label>
 
+          {/* Last Name */}
           <label className="auth-label">
             {t('register.lastName')}
             <div className="auth-input-wrapper">
@@ -203,6 +181,7 @@ export default function Register(): JSX.Element {
             </div>
           </label>
 
+          {/* Age */}
           <label className="auth-label">
             {t('register.age')}
             <div className="auth-input-wrapper">
@@ -218,6 +197,7 @@ export default function Register(): JSX.Element {
             </div>
           </label>
 
+          {/* Email */}
           <label className="auth-label">
             {t('register.email')}
             <div className="auth-input-wrapper">
@@ -234,38 +214,73 @@ export default function Register(): JSX.Element {
             </div>
           </label>
 
+          {/* Password */}
           <label className="auth-label">
             {t('register.password')}
-            <div className="auth-input-wrapper">
+            <div className="auth-input-wrapper" style={{ position: 'relative' }}>
               <span className="auth-input-icon">🔒</span>
               <input
                 className="auth-input"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 placeholder={t('register.placeholderPassword')}
                 value={form.password}
                 onChange={handleChange}
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.5rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem',
+                }}
+              >
+                {showPassword ? '👁️' : '🙈'}
+              </button>
             </div>
           </label>
 
+          {/* Confirm Password */}
           <label className="auth-label">
             {t('register.confirmPassword')}
-            <div className="auth-input-wrapper">
+            <div className="auth-input-wrapper" style={{ position: 'relative' }}>
               <span className="auth-input-icon">🔒</span>
               <input
                 className="auth-input"
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
                 placeholder={t('register.placeholderConfirmPassword')}
                 value={confirmPassword}
                 onChange={handleChange}
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.5rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem',
+                }}
+              >
+                {showConfirmPassword ? '👁️' : '🙈'}
+              </button>
             </div>
           </label>
 
+          {/* Terms */}
           <div className="auth-terms-wrapper">
             <label className="auth-terms" style={{ display: 'flex', alignItems: 'center' }}>
               <input
@@ -314,7 +329,6 @@ export default function Register(): JSX.Element {
 
         {message && (
           <div
-            className="simple-message"
             style={{
               marginTop: '1rem',
               padding: '0.5rem 1rem',

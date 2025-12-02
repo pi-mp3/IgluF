@@ -1,10 +1,19 @@
 // src/pages/Home.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import MeetingExplore from "../widgets/MeetingExplore";
+import { useAuth } from "../context/AuthContext";
 
 export default function Home(): JSX.Element {
   const navigate = useNavigate();
+  const { user } = useAuth(); // <- usuario autenticado desde el contexto
+
+  // Si ya hay sesión iniciada, no mostramos el landing:
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   return (
     <>
@@ -12,8 +21,12 @@ export default function Home(): JSX.Element {
       <section className="hero">
         <div className="hero-inner">
           <div>
-            <p className="hero-eyebrow">Videoconferencias que conectan equipos</p>
-            <h1 className="hero-title">Videoconferencias que conectan equipos</h1>
+            <p className="hero-eyebrow">
+              Videoconferencias que conectan equipos
+            </p>
+            <h1 className="hero-title">
+              Videoconferencias que conectan equipos
+            </h1>
             <p className="hero-subtitle">
               Iglú es la plataforma de videoconferencias en tiempo real con chat,
               audio y video de alta calidad. Simple, rápida y confiable.

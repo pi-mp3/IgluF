@@ -10,13 +10,19 @@
  * User messages: Español
  */
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+} from "firebase/auth";
 import axios from "axios";
 import { auth } from "../firebaseConfig";
-import { useAuth } from "../context/AuthContext"; // Tu context para manejar usuario logueado
+import { useAuth } from "../context/AuthContext";
 
 // ==================== Icons ====================
 const GoogleIcon: React.FC = () => (
@@ -38,28 +44,52 @@ const FacebookIcon: React.FC = () => (
 // ==================== Component ====================
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
-  const { loginFirebase } = useAuth();
+  const { loginFirebase, user } = useAuth();
 
-  const [form, setForm] = useState({ email: '', password: '', remember: true });
+  const [form, setForm] = useState({ email: "", password: "", remember: true });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  const accountDeleted =
+    (location.state as { deleted?: boolean } | null)?.deleted || false;
+
+  // Redirección si ya hay usuario
+  useEffect(() => {
+    if (user) navigate("/dashboard");
+  }, [user, navigate]);
+
+  // Desaparece mensaje de error en 7s
+  useEffect(() => {
+    if (loginError) {
+      const timer = setTimeout(() => setLoginError(null), 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [loginError]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
   // ==================== Email/Password ====================
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setLoginError(null);
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
       loginFirebase(userCredential.user);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (error: any) {
-      console.error("Error de login:", error);
-      alert("Error de inicio de sesión. Verifica tu correo y contraseña.");
+      let msg = "Error de inicio de sesión.";
+      if (error.code === "auth/user-not-found") msg = "No existe una cuenta con este correo.";
+      else if (error.code === "auth/wrong-password") msg = "Contraseña incorrecta.";
+      else if (error.code === "auth/invalid-email") msg = "El correo no es válido.";
+      setLoginError(msg);
     } finally {
       setLoading(false);
     }
@@ -67,6 +97,7 @@ export default function Login(): JSX.Element {
 
   // ==================== Google ====================
   const handleGoogleLogin = () => {
+    // Igual que tu primer código
     window.location.href = "http://localhost:5000/api/auth/google";
   };
 
@@ -87,48 +118,90 @@ export default function Login(): JSX.Element {
       navigate("/dashboard");
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') {
-        alert("Has cerrado la ventana de login antes de completar.");
+        setLoginError("Has cerrado la ventana de login antes de completar.");
       } else {
-        console.error("Error login Facebook:", error);
-        alert("Login con Facebook fallido.");
+        setLoginError("Login con Facebook fallido.");
       }
     }
   };
 
   // ==================== Render ====================
   return (
-    <div className="auth-page">
-      <div className="auth-wrapper">
+    <div className="auth-page auth-page--compact">
+      <div className="auth-wrapper auth-wrapper--compact">
         <h1 className="auth-title">Bienvenido de nuevo</h1>
         <p className="auth-subtitle">Inicia sesión para continuar</p>
+
+        {accountDeleted && (
+          <div className="login-success-banner">✔ Tu cuenta fue eliminada correctamente.</div>
+        )}
+
+        {loginError && (
+          <div
+            style={{
+              marginTop: "1rem",
+              padding: "0.8rem 1rem",
+              borderRadius: "8px",
+              backgroundColor: "#fdecea",
+              color: "#b71c1c",
+              fontSize: "0.95rem",
+              border: "1px solid #f5c2c0",
+              textAlign: "center",
+            }}
+          >
+            ⚠️ {loginError}
+          </div>
+        )}
 
         <form className="auth-card" onSubmit={handleSubmit}>
           {/* Email */}
           <label className="auth-label">
             Correo electrónico
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="ejemplo@correo.com"
-              className="auth-input"
-              required
-            />
+            <div className="auth-input-wrapper">
+              <span className="auth-input-icon">@</span>
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="ejemplo@correo.com"
+                className="auth-input"
+                required
+              />
+            </div>
           </label>
 
           {/* Password */}
           <label className="auth-label">
             Contraseña
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="********"
-              className="auth-input"
-              required
-            />
+            <div className="auth-input-wrapper" style={{ position: "relative" }}>
+              <span className="auth-input-icon">🔒</span>
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="********"
+                className="auth-input"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "1.3rem",
+                }}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
           </label>
 
           <div className="auth-row">
@@ -141,6 +214,14 @@ export default function Login(): JSX.Element {
               />
               Recordarme
             </label>
+
+            <button
+              type="button"
+              className="auth-link"
+              onClick={() => navigate("/forgot-password")}
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
           </div>
 
           <button type="submit" className="auth-submit" disabled={loading}>
@@ -157,10 +238,18 @@ export default function Login(): JSX.Element {
             <button type="button" className="auth-social auth-social-google" onClick={handleGoogleLogin}>
               <GoogleIcon /> <span>Google</span>
             </button>
+
             <button type="button" className="auth-social auth-social-facebook" onClick={handleFacebookLogin}>
               <FacebookIcon /> <span>Facebook</span>
             </button>
           </div>
+
+          <p className="auth-bottom-text">
+            ¿Aún no tienes cuenta?{" "}
+            <button type="button" className="auth-link" onClick={() => navigate("/register")}>
+              Crear una cuenta
+            </button>
+          </p>
         </form>
       </div>
     </div>

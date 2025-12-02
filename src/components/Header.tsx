@@ -5,73 +5,228 @@
  * "Crear Reunión" post-login highlighted.
  */
 
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { auth } from "../firebaseConfig";
+import ConfirmLogoutModal from "./ConfirmLogoutModal";
 
-export default function Header() {
-  const { user, loading, logout } = useAuth();
+export default function Header(): JSX.Element {
+  const navigate = useNavigate();
+  const { user, logoutFirebase, logout, loadingUser } = useAuth() as any;
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // 🔹 Lógica real de cerrar sesión
+  const performLogout = async () => {
+    try {
+      const logoutFn =
+        typeof logoutFirebase === "function"
+          ? logoutFirebase
+          : typeof logout === "function"
+          ? logout
+          : null;
+
+      if (logoutFn) {
+        await logoutFn();
+      } else {
+        await auth.signOut();
+      }
+
+      setIsMobileMenuOpen(false);
+      navigate("/login");
+    } catch (err) {
+      console.error("Error al cerrar sesión:", err);
+      alert("Ocurrió un error al cerrar sesión.");
+    } finally {
+      setShowLogoutConfirm(false);
+    }
+  };
+
+  // 🔹 Botones cuando no hay sesión
+  const PublicNavButtons = () => (
+    <>
+      <button
+        type="button"
+        className="btn-pill btn-pill--outline"
+        onClick={() => {
+          navigate("/about-us");
+          setIsMobileMenuOpen(false);
+        }}
+      >
+        Sobre Nosotros
+      </button>
+      <button
+        type="button"
+        className="btn-pill btn-pill--primary"
+        onClick={() => {
+          navigate("/login");
+          setIsMobileMenuOpen(false);
+        }}
+      >
+        Iniciar Sesión
+      </button>
+      <button
+        type="button"
+        className="btn-pill btn-pill--outline"
+        onClick={() => {
+          navigate("/register");
+          setIsMobileMenuOpen(false);
+        }}
+      >
+        Registrarse
+      </button>
+    </>
+  );
+
+  // 🔹 Botones cuando SÍ hay sesión
+  const PrivateNavButtons = () => (
+    <>
+      <button
+        type="button"
+        className="btn-pill btn-pill--outline"
+        onClick={() => {
+          navigate("/dashboard");
+          setIsMobileMenuOpen(false);
+        }}
+      >
+        Reuniones
+      </button>
+      <button
+        type="button"
+        className="btn-pill btn-pill--outline"
+        onClick={() => {
+          navigate("/profile");
+          setIsMobileMenuOpen(false);
+        }}
+      >
+        Perfil
+      </button>
+      <button
+        type="button"
+        className="btn-pill btn-pill--primary"
+        onClick={() => setShowLogoutConfirm(true)}
+      >
+        Cerrar Sesión
+      </button>
+    </>
+  );
 
   return (
-    <header className="header">
-      <div className="header-inner">
-        {/* Logo */}
-        <Link to="/" className="header-logo">
-          <img src="/logo.png" alt="Iglú Logo" />
-          <span>Iglú</span>
-        </Link>
+    <>
+      <header className="header">
+        <div className="header-inner">
+          {/* Logo */}
+          <Link to="/" className="header-logo">
+            <img src="/logo.png" alt="Logo Iglú" />
+            <span>Iglú</span>
+          </Link>
 
-        {/* Navigation */}
-        <nav className="header-nav">
-          {loading ? (
-            <span className="header-loading">Cargando sesión...</span>
-          ) : user ? (
-            <>
-              {/* After login */}
-              <span className="user-welcome">
-                Hola {user.email?.split("@")[0]} 👋
-              </span>
+          {/* NAV DESKTOP */}
+          <nav className="header-nav header-nav--desktop">
+            {loadingUser ? (
+              <span className="header-loading">Cargando sesión...</span>
+            ) : user ? (
+              <PrivateNavButtons />
+            ) : (
+              <PublicNavButtons />
+            )}
+          </nav>
 
-              <Link to="/dashboard" className="btn-pill btn-pill--outline">
-                Reuniones
-              </Link>
+          {/* BOTÓN HAMBURGUESA (solo móvil) */}
+          <button
+            type="button"
+            className="header-burger"
+            aria-label="Abrir menú"
+            aria-expanded={isMobileMenuOpen}
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </div>
 
-              <Link
-                to="/crear-reunion"
-                className="btn-pill btn-pill--solid" // destacado
-              >
-                Crear Reunión
-              </Link>
+        {/* MENÚ MÓVIL */}
+        {isMobileMenuOpen && (
+          <div className="header-mobile-menu">
+            {loadingUser ? (
+              <div className="header-mobile-item">Cargando sesión...</div>
+            ) : user ? (
+              <>
+                <button
+                  type="button"
+                  className="header-mobile-item"
+                  onClick={() => {
+                    navigate("/dashboard");
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Reuniones
+                </button>
+                <button
+                  type="button"
+                  className="header-mobile-item"
+                  onClick={() => {
+                    navigate("/profile");
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Perfil
+                </button>
+                <button
+                  type="button"
+                  className="header-mobile-item header-mobile-item--danger"
+                  onClick={() => setShowLogoutConfirm(true)}
+                >
+                  Cerrar Sesión
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="header-mobile-item"
+                  onClick={() => {
+                    navigate("/about-us");
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Sobre Nosotros
+                </button>
+                <button
+                  type="button"
+                  className="header-mobile-item"
+                  onClick={() => {
+                    navigate("/login");
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Iniciar Sesión
+                </button>
+                <button
+                  type="button"
+                  className="header-mobile-item"
+                  onClick={() => {
+                    navigate("/register");
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Registrarse
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </header>
 
-              <Link to="/profile" className="btn-pill btn-pill--outline">
-                Perfil
-              </Link>
-
-              <button
-                className="btn-pill btn-pill--outline"
-                onClick={logout}
-              >
-                Cerrar Sesión
-              </button>
-            </>
-          ) : (
-            <>
-              {/* Before login → all same style */}
-              <Link to="/about-us" className="btn-pill btn-pill--outline">
-                Sobre Nosotros
-              </Link>
-
-              <Link to="/login" className="btn-pill btn-pill--outline">
-                Iniciar Sesión
-              </Link>
-
-              <Link to="/register" className="btn-pill btn-pill--outline">
-                Registrarse
-              </Link>
-            </>
-          )}
-        </nav>
-      </div>
-    </header>
+      {/* 🔹 Modal de confirmación de logout */}
+      <ConfirmLogoutModal
+        open={showLogoutConfirm}
+        onConfirm={performLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
+    </>
   );
 }
