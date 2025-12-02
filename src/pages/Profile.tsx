@@ -1,33 +1,10 @@
 /**
- * ============================================================
- *  PROFILE COMPONENT
- * ============================================================
- *
- * Description:
- * This component manages the authenticated user's profile.
- * It reads the Firebase Auth UID, fetches profile data from
- * the backend, allows editing fields, and supports logout
- * and account deletion.
- *
- * UI:
- *  - All UI text is in Spanish (user-facing requirement)
- *
- * Comments & Documentation:
- *  - 100% written in English as requested
- *
- * Backend Contract:
- * The backend must provide:
- * {
- *   name: string;
- *   lastName: string;
- *   age: number;
- *   email: string;
- * }
- *
- * Notes:
- * - Email comes from Firebase and is read-only.
- * - Password is not editable in this component.
- * ============================================================
+ * Profile.tsx
+ * Vista de perfil con:
+ * - Edición de datos básicos
+ * - Mensajes de error/éxito en la propia página
+ * - Modal de confirmación para eliminar cuenta
+ * - Modal de confirmación para CERRAR SESIÓN
  */
 
 import React, { useState, useEffect } from "react";
@@ -47,15 +24,16 @@ interface ProfileForm {
 export default function Profile() {
   const navigate = useNavigate();
 
-  // Firebase UID
   const [userId, setUserId] = useState<string | null>(null);
-
-  // Control UI states
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [error, setError] = useState("");
 
-  // Editable form state
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false); // ⬅️ nuevo modal de logout
+
   const [form, setForm] = useState<ProfileForm>({
     name: "",
     lastName: "",
@@ -63,9 +41,7 @@ export default function Profile() {
     email: "",
   });
 
-  // ------------------------------------------------------------
-  // Detect logged-in user (Firebase Authentication)
-  // ------------------------------------------------------------
+  // Detectar usuario logueado
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
@@ -84,9 +60,7 @@ export default function Profile() {
     return () => unsubscribe();
   }, [navigate]);
 
-  // ------------------------------------------------------------
-  // Fetch profile from backend using UID
-  // ------------------------------------------------------------
+  // Obtener datos de perfil
   useEffect(() => {
     if (!userId) return;
 
@@ -118,23 +92,20 @@ export default function Profile() {
     fetchUser();
   }, [userId]);
 
-  // ------------------------------------------------------------
-  // Handle controlled inputs
-  // ------------------------------------------------------------
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ------------------------------------------------------------
-  // Save profile changes to backend
-  // ------------------------------------------------------------
   const handleSave = async () => {
     if (!userId) return;
 
-    // Basic validation
+    setError("");
+    setSuccessMessage("");
+
+    // Validación básica
     if (!form.name.trim() || !form.lastName.trim() || !form.age.trim()) {
-      alert("Todos los campos son obligatorios");
+      setError("Todos los campos son obligatorios.");
       return;
     }
 
@@ -146,128 +117,269 @@ export default function Profile() {
       });
 
       setIsEditing(false);
-      alert("Perfil actualizado correctamente");
+      setSuccessMessage("Perfil actualizado correctamente.");
     } catch (err: any) {
       console.error("Error saving profile:", err);
-      alert("Error guardando perfil: " + err.message);
+      setError("Error guardando perfil: " + err.message);
     }
   };
 
-  // ------------------------------------------------------------
-  // Delete account permanently
-  // ------------------------------------------------------------
-  const handleDelete = async () => {
+  // Abre el modal de confirmación de eliminación
+  const handleDelete = () => {
     if (!userId) return;
-    if (!window.confirm("¿Seguro que deseas eliminar tu cuenta?")) return;
+    setShowDeleteModal(true);
+  };
+
+  // Acción real de eliminar cuenta (desde el modal)
+  const confirmDelete = async () => {
+    if (!userId) return;
 
     try {
       await deleteUser(userId);
       await signOut(auth);
       navigate("/login");
     } catch (err: any) {
-      alert("Error al eliminar cuenta: " + err.message);
+      setError("Error al eliminar cuenta: " + err.message);
     }
   };
 
-  // ------------------------------------------------------------
-  // Log out user from Firebase
-  // ------------------------------------------------------------
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/login");
+  // Abre el modal de confirmación de logout
+  const handleLogout = () => {
+    setShowLogoutModal(true);
   };
 
-  // ------------------------------------------------------------
-  // Loading screen
-  // ------------------------------------------------------------
-  if (loading) return <div>Cargando perfil...</div>;
+  // Acción real de cerrar sesión (desde el modal)
+  const confirmLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login");
+    } catch (err: any) {
+      console.error("Error al cerrar sesión:", err);
+      setError("Error al cerrar sesión: " + err.message);
+    } finally {
+      setShowLogoutModal(false);
+    }
+  };
 
-  // ------------------------------------------------------------
-  // Render profile UI
-  // ------------------------------------------------------------
+  if (loading) {
+    return (
+      <div className="auth-page">
+        <div className="auth-wrapper">
+          <div className="auth-card profile-card">Cargando perfil...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="auth-page">
+    <div className="auth-page profile-page">
       <div className="auth-wrapper">
         <h1 className="auth-title">Mi Perfil</h1>
+        <p className="auth-subtitle">
+          Gestiona tu información personal de Iglú.
+        </p>
 
-        {error && (
-          <p style={{ color: "red", fontWeight: "bold" }}>⚠️ {error}</p>
+        {error && <p className="profile-error">⚠️ {error}</p>}
+        {successMessage && (
+          <p className="profile-success">✔ {successMessage}</p>
         )}
 
-        <form className="auth-card" onSubmit={(e) => e.preventDefault()}>
-          <label className="auth-label">
-            Nombre
-            <input
-              className="auth-input"
-              type="text"
-              name="name"
-              disabled={!isEditing}
-              value={form.name}
-              onChange={handleChange}
-            />
-          </label>
+        <form
+          className={`auth-card profile-card ${
+            isEditing ? "profile-card--editing" : ""
+          }`}
+          onSubmit={(e) => e.preventDefault()}
+        >
+          <div className="profile-section-header">
+            <div>
+              <h2>Información personal</h2>
+              {isEditing && (
+                <p className="profile-helper-text">
+                  Estás editando tu información. No olvides guardar los cambios.
+                </p>
+              )}
+            </div>
 
-          <label className="auth-label">
-            Apellido
-            <input
-              className="auth-input"
-              type="text"
-              name="lastName"
-              disabled={!isEditing}
-              value={form.lastName}
-              onChange={handleChange}
-            />
-          </label>
+            {isEditing ? (
+              <span className="profile-status-pill profile-status-pill--editing">
+                Editando
+              </span>
+            ) : (
+              <span className="profile-status-pill">Solo lectura</span>
+            )}
+          </div>
 
-          <label className="auth-label">
-            Edad
-            <input
-              className="auth-input"
-              type="number"
-              name="age"
-              disabled={!isEditing}
-              value={form.age}
-              onChange={handleChange}
-            />
-          </label>
+          <div className="profile-grid">
+            <label className="auth-label">
+              Nombre
+              <div
+                className={`auth-input-wrapper ${
+                  isEditing ? "profile-input-editable" : ""
+                }`}
+              >
+                <span className="auth-input-icon">👤</span>
+                <input
+                  className="auth-input"
+                  type="text"
+                  name="name"
+                  disabled={!isEditing}
+                  value={form.name}
+                  onChange={handleChange}
+                />
+              </div>
+            </label>
 
-          <label className="auth-label">
-            Correo electrónico
-            <input
-              className="auth-input"
-              type="email"
-              disabled
-              value={form.email}
-            />
-          </label>
+            <label className="auth-label">
+              Apellido
+              <div
+                className={`auth-input-wrapper ${
+                  isEditing ? "profile-input-editable" : ""
+                }`}
+              >
+                <span className="auth-input-icon">👤</span>
+                <input
+                  className="auth-input"
+                  type="text"
+                  name="lastName"
+                  disabled={!isEditing}
+                  value={form.lastName}
+                  onChange={handleChange}
+                />
+              </div>
+            </label>
 
-          {isEditing ? (
-            <button className="auth-submit" onClick={handleSave}>
-              Guardar cambios
-            </button>
-          ) : (
-            <button className="auth-submit" onClick={() => setIsEditing(true)}>
-              Editar perfil
-            </button>
-          )}
+            <label className="auth-label">
+              Edad
+              <div
+                className={`auth-input-wrapper ${
+                  isEditing ? "profile-input-editable" : ""
+                }`}
+              >
+                <span className="auth-input-icon">🎂</span>
+                <input
+                  className="auth-input"
+                  type="number"
+                  name="age"
+                  disabled={!isEditing}
+                  value={form.age}
+                  onChange={handleChange}
+                />
+              </div>
+            </label>
 
-          <button
-            className="auth-submit"
-            style={{ background: "#f0ad4e" }}
-            onClick={handleDelete}
-          >
-            Eliminar cuenta
-          </button>
+            <label className="auth-label">
+              Correo electrónico
+              <div className="auth-input-wrapper">
+                <span className="auth-input-icon">@</span>
+                <input
+                  className="auth-input"
+                  type="email"
+                  disabled
+                  value={form.email}
+                />
+              </div>
+            </label>
+          </div>
 
-          <button
-            className="auth-submit"
-            style={{ background: "#d9534f" }}
-            onClick={handleLogout}
-          >
-            Cerrar sesión
-          </button>
+          <div className="profile-actions">
+            {isEditing ? (
+              <button
+                type="button"
+                className="auth-submit profile-primary-btn"
+                onClick={handleSave}
+              >
+                Guardar cambios
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="auth-submit profile-primary-btn"
+                onClick={() => {
+                  setIsEditing(true);
+                  setSuccessMessage("");
+                  setError("");
+                }}
+              >
+                Editar perfil
+              </button>
+            )}
+
+            <div className="profile-secondary-actions">
+              <button
+                type="button"
+                className="profile-delete-btn"
+                onClick={handleDelete}
+              >
+                Eliminar cuenta
+              </button>
+
+              <button
+                type="button"
+                className="profile-logout-btn"
+                onClick={handleLogout}
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
         </form>
       </div>
+
+      {/* Modal de confirmación de eliminación de cuenta */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <h3 className="modal-title">Eliminar cuenta</h3>
+            <p className="modal-text">
+              Esta acción eliminará permanentemente tu cuenta y no podrá
+              deshacerse. ¿Deseas continuar?
+            </p>
+
+            <div className="modal-actions">
+              <button
+                className="modal-btn modal-btn-cancel"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="modal-btn modal-btn-danger"
+                onClick={confirmDelete}
+              >
+                Sí, eliminar cuenta
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación de CERRAR SESIÓN */}
+      {showLogoutModal && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <h3 className="modal-title">Cerrar sesión</h3>
+            <p className="modal-text">
+              Se cerrará tu sesión actual en Iglú. Podrás volver a iniciar
+              sesión cuando quieras usando tu correo y contraseña.
+            </p>
+
+            <div className="modal-actions">
+              <button
+                className="modal-btn modal-btn-cancel"
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="modal-btn modal-btn-danger"
+                onClick={confirmLogout}
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
