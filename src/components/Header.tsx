@@ -1,10 +1,3 @@
-/**
- * Header.tsx
- *
- * UPDATED: All pre-login buttons consistent.
- * "Crear Reunión" post-login highlighted.
- */
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
