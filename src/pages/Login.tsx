@@ -17,7 +17,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { auth, User as FirebaseUser } from "../firebaseConfig";
+import { auth } from "../firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
 
