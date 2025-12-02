@@ -67,11 +67,84 @@ body {
   letter-spacing: 0.02em;
 }
 
-/* Contenedor de los botones de la derecha */
-.header-nav {
+/* --- NAV DESKTOP vs MÓVIL --- */
+
+/* Por defecto: nav visible (desktop), hamburguesa y menú móvil ocultos */
+.header-nav--desktop {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.header-burger {
+  display: none;              /* se muestra solo en móvil */
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0;
+}
+
+.header-burger span {
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: #0f172a;
+}
+
+/* Contenedor del menú móvil desplegable */
+.header-mobile-menu {
+  display: none; /* solo visible en móvil cuando está abierto (lo controla React) */
+}
+
+/* Estilo de cada opción dentro del menú móvil */
+.header-mobile-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.9rem 1.5rem;
+  border: none;
+  background: #ffffff;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-top: 1px solid #e5e7eb;
+}
+
+.header-mobile-item:hover {
+  background: #f9fafb;
+}
+
+.header-mobile-item--danger {
+  color: #b91c1c;
+}
+
+/* --- Breakpoint móvil --- */
+@media (max-width: 768px) {
+  /* Ocultar nav de escritorio y mostrar hamburguesa */
+  .header-nav--desktop {
+    display: none;
+  }
+
+  .header-burger {
+    display: flex;
+  }
+
+  /* Menú móvil ocupa todo el ancho bajo el header */
+  .header-mobile-menu {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+    z-index: 25;
+  }
 }
 
 /* Mensaje de carga de sesión */
@@ -1556,4 +1629,173 @@ body {
 /* Anular el margen extra entre labels hermanos dentro del grid */
 .profile-grid .auth-label + .auth-label {
   margin-top: 0;
+}
+/* ------------------------------------------------ */
+/* 🟥 MODAL DE ELIMINAR CUENTA */
+/* ------------------------------------------------ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: modalFade 0.2s ease-out;
+}
+
+@keyframes modalFade {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+  color: #0f172a;
+}
+
+.modal-text {
+  font-size: 0.95rem;
+  color: #475569;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 0.7rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  font-weight: 500;
+}
+
+/* Botón cancelar */
+.modal-btn-cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.modal-btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+/* Botón peligro */
+.modal-btn-danger {
+  background: #e63946;
+  color: #ffffff;
+}
+
+.modal-btn-danger:hover {
+  background: #b91c1c;
+}
+/* -------------------------------------- */
+/* 🟦 LOGIN COMPACTO (menos scroll)       */
+/* -------------------------------------- */
+
+.auth-page--compact {
+  display: flex;
+  justify-content: center;
+}
+
+/* Reducimos padding vertical solo en login/registro compactos */
+.auth-wrapper--compact {
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2.4rem 1.5rem 3rem;
+}
+
+/* En pantallas altas, centramos un poco más */
+@media (min-height: 750px) {
+  .auth-page--compact {
+    align-items: center;
+  }
+
+  .auth-wrapper--compact {
+    padding-top: 1.8rem;
+    padding-bottom: 2.6rem;
+  }
+}
+
+/* ===== Menú Hamburguesa con Estilo Iglú ===== */
+
+.mobile-menu {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  width: 100%;
+  background: #f8fafc; /* Fondo suave, elegante */
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 150;
+}
+
+/* Botones del menú */
+.mobile-menu-item {
+  padding: 1.15rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #0f172a; /* Gris oscuro elegante */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.25s ease, color 0.25s ease;
+  cursor: pointer;
+}
+
+/* Hover */
+.mobile-menu-item:hover {
+  background: #e2f5f3; /* Verde suave acorde al diseño */
+}
+
+/* Último ítem sin borde */
+.mobile-menu-item:last-child {
+  border-bottom: none;
+}
+
+/* ===== Estilo especial para Cerrar Sesión ===== */
+
+.mobile-menu-item.logout {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.mobile-menu-item.logout:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Flecha > */
+.menu-arrow {
+  opacity: 0.5;
+  font-size: 1.1rem;
 }

@@ -1,3 +1,12 @@
+/**
+ * Profile.tsx
+ * Vista de perfil con:
+ * - Edición de datos básicos
+ * - Mensajes de error/éxito en la propia página
+ * - Modal de confirmación para eliminar cuenta
+ * - Modal de confirmación para CERRAR SESIÓN
+ */
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebaseConfig";
@@ -22,6 +31,9 @@ export default function Profile() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false); // ⬅️ nuevo modal de logout
+
   const [form, setForm] = useState<ProfileForm>({
     name: "",
     lastName: "",
@@ -29,7 +41,7 @@ export default function Profile() {
     email: "",
   });
 
-  // Detect logged-in user
+  // Detectar usuario logueado
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
@@ -48,7 +60,7 @@ export default function Profile() {
     return () => unsubscribe();
   }, [navigate]);
 
-  // Fetch profile
+  // Obtener datos de perfil
   useEffect(() => {
     if (!userId) return;
 
@@ -88,7 +100,6 @@ export default function Profile() {
   const handleSave = async () => {
     if (!userId) return;
 
-    // limpiar mensajes anteriores
     setError("");
     setSuccessMessage("");
 
@@ -113,9 +124,15 @@ export default function Profile() {
     }
   };
 
-  const handleDelete = async () => {
+  // Abre el modal de confirmación de eliminación
+  const handleDelete = () => {
     if (!userId) return;
-    if (!window.confirm("¿Seguro que deseas eliminar tu cuenta?")) return;
+    setShowDeleteModal(true);
+  };
+
+  // Acción real de eliminar cuenta (desde el modal)
+  const confirmDelete = async () => {
+    if (!userId) return;
 
     try {
       await deleteUser(userId);
@@ -126,9 +143,22 @@ export default function Profile() {
     }
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/login");
+  // Abre el modal de confirmación de logout
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  // Acción real de cerrar sesión (desde el modal)
+  const confirmLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login");
+    } catch (err: any) {
+      console.error("Error al cerrar sesión:", err);
+      setError("Error al cerrar sesión: " + err.message);
+    } finally {
+      setShowLogoutModal(false);
+    }
   };
 
   if (loading) {
@@ -150,7 +180,9 @@ export default function Profile() {
         </p>
 
         {error && <p className="profile-error">⚠️ {error}</p>}
-        {successMessage && <p className="profile-success">✔ {successMessage}</p>}
+        {successMessage && (
+          <p className="profile-success">✔ {successMessage}</p>
+        )}
 
         <form
           className={`auth-card profile-card ${
@@ -292,6 +324,62 @@ export default function Profile() {
           </div>
         </form>
       </div>
+
+      {/* Modal de confirmación de eliminación de cuenta */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <h3 className="modal-title">Eliminar cuenta</h3>
+            <p className="modal-text">
+              Esta acción eliminará permanentemente tu cuenta y no podrá
+              deshacerse. ¿Deseas continuar?
+            </p>
+
+            <div className="modal-actions">
+              <button
+                className="modal-btn modal-btn-cancel"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="modal-btn modal-btn-danger"
+                onClick={confirmDelete}
+              >
+                Sí, eliminar cuenta
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación de CERRAR SESIÓN */}
+      {showLogoutModal && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <h3 className="modal-title">Cerrar sesión</h3>
+            <p className="modal-text">
+              Se cerrará tu sesión actual en Iglú. Podrás volver a iniciar
+              sesión cuando quieras usando tu correo y contraseña.
+            </p>
+
+            <div className="modal-actions">
+              <button
+                className="modal-btn modal-btn-cancel"
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="modal-btn modal-btn-danger"
+                onClick={confirmLogout}
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
