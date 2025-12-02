@@ -1743,105 +1743,59 @@ body {
   }
 }
 
-/* ===================================================== */
-/* 🟢 UTILIDADES RESPONSIVE ADICIONALES                  */
-/* ===================================================== */
-
-/* Imágenes siempre responsivas */
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* Contenedor genérico (por si lo necesitas en otras vistas) */
-.page-container {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 0 1.25rem;
-}
-
-/* Header más compacto en móviles */
-@media (max-width: 640px) {
-  .header-inner {
-    padding-inline: 0.9rem;
-  }
-
-  .header-nav {
-    gap: 0.35rem;
-  }
-
-  .btn-pill {
-    padding: 0.45rem 0.9rem;
-    font-size: 0.8rem;
-  }
-}
-
-/* Hero mejorado en móvil/tablet */
-@media (max-width: 768px) {
-  .hero {
-    padding: 3.2rem 1.25rem 3.4rem;
-  }
-
-  .hero-inner {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-  }
-
-  .hero-title {
-    font-size: clamp(2rem, 7vw, 2.4rem);
-  }
-
-  .hero-subtitle {
-    font-size: 0.95rem;
-  }
-
-  .hero-card {
-    margin-top: 0.5rem;
-  }
-}
-
-/* Mapa del sitio: 2 columnas en tablet, 3 en desktop, 1 en móvil */
-@media (min-width: 640px) and (max-width: 1024px) {
-  .sitemap-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-/* ------------------------------ */
-/* 🟦 MENÚ HAMBURGUESA (MÓVIL) */
-/* ------------------------------ */
-
-.mobile-menu-btn {
-  font-size: 1.6rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #0f172a;
-}
+/* ===== Menú Hamburguesa con Estilo Iglú ===== */
 
 .mobile-menu {
-  background: white;
-  border-top: 1px solid #e5e7eb;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-  padding: 0.8rem 1.2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
+  position: absolute;
+  top: 70px;
+  left: 0;
+  width: 100%;
+  background: #f8fafc; /* Fondo suave, elegante */
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 150;
 }
 
+/* Botones del menú */
 .mobile-menu-item {
-  padding: 0.8rem 0;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 1.15rem 1.4rem;
   font-size: 1rem;
-  color: #0f172a;
-  text-decoration: none;
+  font-weight: 500;
+  color: #0f172a; /* Gris oscuro elegante */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.25s ease, color 0.25s ease;
+  cursor: pointer;
 }
 
+/* Hover */
+.mobile-menu-item:hover {
+  background: #e2f5f3; /* Verde suave acorde al diseño */
+}
+
+/* Último ítem sin borde */
 .mobile-menu-item:last-child {
   border-bottom: none;
 }
 
-.mobile-menu-item:hover {
-  color: var(--teal);
+/* ===== Estilo especial para Cerrar Sesión ===== */
+
+.mobile-menu-item.logout {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.mobile-menu-item.logout:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Flecha > */
+.menu-arrow {
+  opacity: 0.5;
+  font-size: 1.1rem;
 }
