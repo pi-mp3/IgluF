@@ -4,6 +4,10 @@
  * API SERVICE — FRONTEND
  * Documentation: English comments
  * User messages: Español
+ *
+ * Cambios mínimos:
+ * - Se reemplazó la función de Facebook por GitHub.
+ * - Mantener el resto exactamente igual.
  */
 
 import { http } from "../api/http";
@@ -15,7 +19,9 @@ import { User } from "../models/User";
  * ============================================================
  */
 
-// Interface for user registration data
+/**
+ * Interface for user registration data
+ */
 export interface RegisterData {
   firstName: string;
   lastName: string;
@@ -24,13 +30,17 @@ export interface RegisterData {
   password: string;
 }
 
-// Interface for user login data
+/**
+ * Interface for user login data
+ */
 export interface LoginData {
   email: string;
   password: string;
 }
 
-// Interface for editing user data
+/**
+ * Interface for editing user data
+ */
 export interface EditUserData {
   firstName?: string;
   lastName?: string;
@@ -82,21 +92,14 @@ export const loginGoogle = () => {
 };
 
 /**
- * Handles Facebook OAuth login.
- * Sends user data to backend callback.
- * Backend route: POST /auth/facebook/callback
+ * Redirects user to GitHub OAuth login.
+ * Backend route: GET /auth/github
+ * NOTE: frontend must handle redirect flow
+ *
+ * Reemplaza la antigua función de Facebook por GitHub (cambio mínimo).
  */
-export const loginFacebook = async (userData: { uid: string; email: string; displayName: string }) => {
-  try {
-    const res = await http.post("/auth/facebook/callback", userData);
-    return res.data;
-  } catch (err: any) {
-    throw new Error(
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      "Error iniciando sesión con Facebook"
-    );
-  }
+export const loginGitHub = () => {
+  window.location.href = `${http.defaults.baseURL}/auth/github`;
 };
 
 /**
