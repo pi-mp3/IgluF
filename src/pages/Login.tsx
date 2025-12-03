@@ -3,30 +3,29 @@
  *
  * Handles:
  *  - Email/password login with Firebase
- *  - Google and Facebook login
+ *  - Google and GitHub login (reemplazado Facebook por GitHub)
  *  - Redirect to dashboard
- * 
+ *
  * Documentation: English comments
  * User messages: Español
+ *
+ * NOTA IMPORTANTE:
+ * - Se hicieron los cambios mínimos: se sustituyó el botón/handler de Facebook por GitHub.
+ * - No se tocó ningún estilo ni lógica de email/password.
+ * - Google sigue exactamente igual (usa la misma URL que tenías).
  */
-
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  FacebookAuthProvider,
-} from "firebase/auth";
+import { signInWithEmailAndPassword, GoogleAuthProvider } from "firebase/auth";
 import axios from "axios";
 import { auth } from "../firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 
 // ==================== Icons ====================
 const GoogleIcon: React.FC = () => (
-  <svg width="18" height="18" viewBox="0 0 533.5 544.3">
+  <svg width="18" height="18" viewBox="0 0 533.5 544.3" aria-hidden>
     <path fill="#4285F4" d="M533.5 278.4c0-17.4-1.5-34.1-4.3-50.2H272v95h147.5c-6.4 34.4-25 63.5-53.3 83.2l86.1 67.1c50.3-46.4 80.2-114.8 80.2-195.1z"/>
     <path fill="#34A853" d="M272 544.3c72.1 0 132.5-23.7 176.6-64.3l-86.1-67.1c-23.9 16.1-54.4 25.6-90.5 25.6-69.6 0-128.6-47-149.7-110.1l-88.2 68.3c41.4 92.1 135.7 147.6 238 147.6z"/>
     <path fill="#FBBC05" d="M122.3 328.4c-10.2-30.4-10.2-63.4 0-93.7l-88.2-68.3C-14.3 227.4-14.3 316.9 34.1 396.7l88.2-68.3z"/>
@@ -34,10 +33,15 @@ const GoogleIcon: React.FC = () => (
   </svg>
 );
 
-const FacebookIcon: React.FC = () => (
-  <svg width="18" height="18" viewBox="0 0 32 32">
-    <path fill="#1877F2" d="M32 16.1C32 7.2 24.9 0 16 0S0 7.2 0 16.1c0 8 5.9 14.7 13.6 15.9v-11h-4v-5h4v-3.8c0-4 2.4-6.2 6-6.2 1.7 0 3.4.3 3.4.3v3.8h-1.9c-1.9 0-2.5 1.2-2.5 2.4V16h4.3l-.7 5h-3.6v11C26.1 30.8 32 24.1 32 16.1z"/>
-    <path fill="#fff" d="M22.3 21l.7-5H19v-3.5c0-1.2.6-2.4 2.5-2.4h1.9V6.3s-1.7-.3-3.4-.3c-3.6 0-6 2.2-6 6.2V16h-4v5h4v11c.8.1 1.7.2 2.5.2s1.7-.1 2.5-.2V21h3.6z"/>
+/**
+ * GitHubIcon
+ * Reemplaza al icono de Facebook: mantiene tamaño y posición.
+ * Ícono simple en negro (estético neutro).
+ */
+const GitHubIcon: React.FC = () => (
+  <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden>
+    <path fill="#181717" fillRule="evenodd"
+      d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.49-2.7-1.08-2.7-1.08-.36-.92-.88-1.16-.88-1.16-.72-.49.06-.48.06-.48.8.06 1.22.82 1.22.82.71 1.21 1.87.86 2.33.66.07-.52.28-.86.51-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.56 7.56 0 012 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0016 8c0-4.42-3.58-8-8-8z"/>
   </svg>
 );
 
@@ -97,32 +101,15 @@ export default function Login(): JSX.Element {
 
   // ==================== Google ====================
   const handleGoogleLogin = () => {
-    // Igual que tu primer código
+    // Igual que tu primer código (dev)
     window.location.href = "http://localhost:5000/api/auth/google";
   };
 
-  // ==================== Facebook ====================
-  const handleFacebookLogin = async () => {
-    try {
-      const provider = new FacebookAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-
-      loginFirebase(result.user);
-
-      await axios.post(`http://localhost:5000/api/auth/facebook/callback`, {
-        uid: result.user.uid,
-        email: result.user.email,
-        displayName: result.user.displayName,
-      });
-
-      navigate("/dashboard");
-    } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-        setLoginError("Has cerrado la ventana de login antes de completar.");
-      } else {
-        setLoginError("Login con Facebook fallido.");
-      }
-    }
+  // ==================== GitHub (reemplaza Facebook) ====================
+  // Mínimo cambio: redirige al backend que inicia OAuth con GitHub.
+  // Usamos localhost para mantener consistencia con tu código actual.
+  const handleGitHubLogin = () => {
+    window.location.href = "http://localhost:5000/api/auth/github";
   };
 
   // ==================== Render ====================
@@ -239,8 +226,8 @@ export default function Login(): JSX.Element {
               <GoogleIcon /> <span>Google</span>
             </button>
 
-            <button type="button" className="auth-social auth-social-facebook" onClick={handleFacebookLogin}>
-              <FacebookIcon /> <span>Facebook</span>
+            <button type="button" className="auth-social auth-social-facebook" onClick={handleGitHubLogin}>
+              <GitHubIcon /> <span>GitHub</span>
             </button>
           </div>
 
