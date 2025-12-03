@@ -23,7 +23,6 @@ import axios from "axios";
 import { auth } from "../firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 
-// ==================== Icons ====================
 const GoogleIcon: React.FC = () => (
   <svg width="18" height="18" viewBox="0 0 533.5 544.3" aria-hidden>
     <path fill="#4285F4" d="M533.5 278.4c0-17.4-1.5-34.1-4.3-50.2H272v95h147.5c-6.4 34.4-25 63.5-53.3 83.2l86.1 67.1c50.3-46.4 80.2-114.8 80.2-195.1z"/>
@@ -45,7 +44,8 @@ const GitHubIcon: React.FC = () => (
   </svg>
 );
 
-// ==================== Component ====================
+// ==================== Componente ====================
+
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,14 +78,18 @@ export default function Login(): JSX.Element {
     setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
-  // ==================== Email/Password ====================
+  // ==================== Email/Password (misma lógica que antes) ====================
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setLoginError(null);
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        form.email,
+        form.password
+      );
       loginFirebase(userCredential.user);
       navigate("/dashboard");
     } catch (error: any) {
@@ -112,7 +116,6 @@ export default function Login(): JSX.Element {
     window.location.href = "http://localhost:5000/api/auth/github";
   };
 
-  // ==================== Render ====================
   return (
     <div className="auth-page auth-page--compact">
       <div className="auth-wrapper auth-wrapper--compact">
@@ -158,7 +161,7 @@ export default function Login(): JSX.Element {
             </div>
           </label>
 
-          {/* Password */}
+          {/* Contraseña con ver/ocultar */}
           <label className="auth-label">
             Contraseña
             <div className="auth-input-wrapper" style={{ position: "relative" }}>
@@ -199,7 +202,7 @@ export default function Login(): JSX.Element {
                 checked={form.remember}
                 onChange={handleChange}
               />
-              Recordarme
+              <span>{t("login.rememberMe")}</span>
             </label>
 
             <button
@@ -211,19 +214,28 @@ export default function Login(): JSX.Element {
             </button>
           </div>
 
+          {/* Botón iniciar sesión */}
           <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? "Iniciando..." : "Iniciar sesión"}
+            {loading ? "Iniciando..." : t("login.loginButton")}
           </button>
 
+          {/* Divider */}
           <div className="auth-divider">
             <span className="auth-divider-line" />
-            <span className="auth-divider-text">o continuar con</span>
+            <span className="auth-divider-text">
+              {t("login.orContinueWith")}
+            </span>
             <span className="auth-divider-line" />
           </div>
 
+          {/* Social login */}
           <div className="auth-social-row">
-            <button type="button" className="auth-social auth-social-google" onClick={handleGoogleLogin}>
-              <GoogleIcon /> <span>Google</span>
+            <button
+              type="button"
+              className="auth-social auth-social-google"
+              onClick={handleGoogleLogin}
+            >
+              <GoogleIcon /> <span>{t("login.google")}</span>
             </button>
 
             <button type="button" className="auth-social auth-social-facebook" onClick={handleGitHubLogin}>
