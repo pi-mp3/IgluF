@@ -1,41 +1,36 @@
-import { useEffect, useState } from "react";
+// src/pages/OAuthCallback.tsx
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { http } from "../api/http"; // usar cliente axios centralizado
+import { useAuth } from "../context/AuthContext";
+import { auth } from "../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
+/**
+ * Página de callback para OAuth (Google/GitHub)
+ * 
+ * Función:
+ *  - Detecta usuario logueado tras OAuth
+ *  - Actualiza AuthContext
+ *  - Redirige automáticamente a /dashboard
+ */
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const { loginFirebase } = useAuth();
 
   useEffect(() => {
-    const sendCode = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-
-      if (!code) {
-        console.error("No se recibió el code de Google OAuth");
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        // Actualiza contexto y redirige al dashboard
+        loginFirebase(firebaseUser);
+        navigate("/dashboard");
+      } else {
+        // Si no hay usuario, vuelve a login
         navigate("/login");
-        return;
       }
+    });
 
-      try {
-        const res = await http.get(`/auth/google/callback?code=${code}`, { withCredentials: true });
+    return () => unsubscribe();
+  }, [loginFirebase, navigate]);
 
-        if (res.data.success) {
-          navigate("/dashboard");
-        } else {
-          console.error("Autenticación fallida en backend");
-          navigate("/login");
-        }
-      } catch (err: any) {
-        console.error("Error enviando code al backend:", err.response?.data || err);
-        navigate("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    sendCode();
-  }, [navigate]);
-
-  return <p>{loading ? "Procesando autenticación..." : "Redirigiendo..."}</p>;
+  return <div style={{ textAlign: "center", marginTop: "2rem" }}>Cargando sesión...</div>;
 }

@@ -14,12 +14,11 @@
  * - No se tocó ningún estilo ni lógica de email/password.
  * - Google sigue exactamente igual (usa la misma URL que tenías).
  */
-
+// Login.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { signInWithEmailAndPassword, GoogleAuthProvider } from "firebase/auth";
-import axios from "axios";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import { useAuth } from "../context/AuthContext";
 
@@ -33,11 +32,6 @@ const GoogleIcon: React.FC = () => (
   </svg>
 );
 
-/**
- * GitHubIcon
- * Reemplaza al icono de Facebook: mantiene tamaño y posición.
- * Ícono simple en negro (estético neutro).
- */
 const GitHubIcon: React.FC = () => (
   <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden>
     <path fill="#181717" fillRule="evenodd"
@@ -45,11 +39,9 @@ const GitHubIcon: React.FC = () => (
   </svg>
 );
 
-// ==================== Component ====================
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();
   const { loginFirebase, user } = useAuth();
 
   const [form, setForm] = useState({ email: "", password: "", remember: true });
@@ -60,12 +52,10 @@ export default function Login(): JSX.Element {
   const accountDeleted =
     (location.state as { deleted?: boolean } | null)?.deleted || false;
 
-  // Redirección si ya hay usuario
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
 
-  // Desaparece mensaje de error en 7s
   useEffect(() => {
     if (loginError) {
       const timer = setTimeout(() => setLoginError(null), 7000);
@@ -83,7 +73,6 @@ export default function Login(): JSX.Element {
     e.preventDefault();
     setLoading(true);
     setLoginError(null);
-
     try {
       const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
       loginFirebase(userCredential.user);
@@ -101,15 +90,13 @@ export default function Login(): JSX.Element {
 
   // ==================== Google ====================
   const handleGoogleLogin = () => {
-    // Igual que tu primer código (dev)
     window.location.href = "http://localhost:5000/api/auth/google";
   };
 
-  // ==================== GitHub (reemplaza Facebook) ====================
-  // Mínimo cambio: redirige al backend que inicia OAuth con GitHub.
-  // Usamos localhost para mantener consistencia con tu código actual.
+  // ==================== GitHub ====================
   const handleGitHubLogin = () => {
-    window.location.href = "http://localhost:5000/api/auth/github";
+    const BACKEND = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+    window.location.href = `${BACKEND}/api/auth/github`;
   };
 
   // ==================== Render ====================
@@ -119,9 +106,7 @@ export default function Login(): JSX.Element {
         <h1 className="auth-title">Bienvenido de nuevo</h1>
         <p className="auth-subtitle">Inicia sesión para continuar</p>
 
-        {accountDeleted && (
-          <div className="login-success-banner">✔ Tu cuenta fue eliminada correctamente.</div>
-        )}
+        {accountDeleted && <div className="login-success-banner">✔ Tu cuenta fue eliminada correctamente.</div>}
 
         {loginError && (
           <div
@@ -141,51 +126,20 @@ export default function Login(): JSX.Element {
         )}
 
         <form className="auth-card" onSubmit={handleSubmit}>
-          {/* Email */}
           <label className="auth-label">
             Correo electrónico
             <div className="auth-input-wrapper">
               <span className="auth-input-icon">@</span>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="ejemplo@correo.com"
-                className="auth-input"
-                required
-              />
+              <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="ejemplo@correo.com" className="auth-input" required />
             </div>
           </label>
 
-          {/* Password */}
           <label className="auth-label">
             Contraseña
             <div className="auth-input-wrapper" style={{ position: "relative" }}>
               <span className="auth-input-icon">🔒</span>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="********"
-                className="auth-input"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: "10px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "1.3rem",
-                }}
-              >
+              <input type={showPassword ? "text" : "password"} name="password" value={form.password} onChange={handleChange} placeholder="********" className="auth-input" required />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem" }}>
                 {showPassword ? "🙈" : "👁️"}
               </button>
             </div>
@@ -193,20 +147,11 @@ export default function Login(): JSX.Element {
 
           <div className="auth-row">
             <label className="auth-remember">
-              <input
-                type="checkbox"
-                name="remember"
-                checked={form.remember}
-                onChange={handleChange}
-              />
+              <input type="checkbox" name="remember" checked={form.remember} onChange={handleChange} />
               Recordarme
             </label>
 
-            <button
-              type="button"
-              className="auth-link"
-              onClick={() => navigate("/forgot-password")}
-            >
+            <button type="button" className="auth-link" onClick={() => navigate("/forgot-password")}>
               ¿Olvidaste tu contraseña?
             </button>
           </div>
