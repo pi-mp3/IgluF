@@ -3,11 +3,11 @@
  *
  * FRONTEND API SERVICE
  * ---------------------------------------------------------
+ * This file communicates ONLY with your backend.
+ * All routes match the backend controllers exactly.
+ *
  * Developer documentation: English
  * User-facing messages: Spanish
- *
- * This file communicates ONLY with your backend.
- * Aligned 100% with your current backend controllers.
  */
 
 import { http } from "../api/http";
@@ -46,7 +46,7 @@ export interface EditUserData {
 
 /**
  * Register a new user
- * Backend: POST /auth/register
+ * Backend: POST /api/auth/register
  */
 export const registerUser = async (userData: RegisterData) => {
   try {
@@ -54,16 +54,14 @@ export const registerUser = async (userData: RegisterData) => {
     return res.data;
   } catch (err: any) {
     throw new Error(
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      "Error registrando el usuario"
+      err.message || "Error registrando el usuario"
     );
   }
 };
 
 /**
  * Login using email/password
- * Backend: POST /auth/login
+ * Backend: POST /api/auth/login
  */
 export const loginUser = async (credentials: LoginData) => {
   try {
@@ -71,9 +69,7 @@ export const loginUser = async (credentials: LoginData) => {
     return res.data;
   } catch (err: any) {
     throw new Error(
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      "Error iniciando sesión"
+      err.message || "Error iniciando sesión"
     );
   }
 };
@@ -83,7 +79,10 @@ export const loginUser = async (credentials: LoginData) => {
  * Backend: GET /auth/google
  */
 export const loginGoogle = () => {
-  window.location.href = `${http.defaults.baseURL}/auth/google`;
+  const BACKEND =
+    (import.meta.env.VITE_BACKEND_URL as string) || "http://localhost:5000";
+
+  window.location.href = `${BACKEND}/auth/google`;
 };
 
 /**
@@ -91,12 +90,15 @@ export const loginGoogle = () => {
  * Backend: GET /auth/github
  */
 export const loginGitHub = () => {
-  window.location.href = `${http.defaults.baseURL}/auth/github`;
+  const BACKEND =
+    (import.meta.env.VITE_BACKEND_URL as string) || "http://localhost:5000";
+
+  window.location.href = `${BACKEND}/auth/github`;
 };
 
 /**
  * Logout user
- * Backend: POST /auth/logout
+ * Backend: POST /api/auth/logout
  */
 export const logoutUser = async () => {
   try {
@@ -104,9 +106,7 @@ export const logoutUser = async () => {
     return res.data;
   } catch (err: any) {
     throw new Error(
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      "Error cerrando sesión"
+      err.message || "Error cerrando sesión"
     );
   }
 };
@@ -117,7 +117,7 @@ export const logoutUser = async () => {
 
 /**
  * Request password reset email
- * Backend: POST /recover/user/send-reset-email
+ * Backend: POST /api/recover/user/send-reset-email
  */
 export const recoverPassword = async (email: string) => {
   try {
@@ -125,16 +125,14 @@ export const recoverPassword = async (email: string) => {
     return res.data;
   } catch (err: any) {
     throw new Error(
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      "Error enviando correo de recuperación"
+      err.message || "Error enviando correo de recuperación"
     );
   }
 };
 
 /**
  * Reset password
- * Backend: POST /recover/user/reset-password
+ * Backend: POST /api/recover/user/reset-password
  */
 export const resetPassword = async (
   email: string,
@@ -147,12 +145,11 @@ export const resetPassword = async (
       newPassword,
       token,
     });
+
     return res.data;
   } catch (err: any) {
     throw new Error(
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      "Error actualizando la contraseña"
+      err.message || "Error actualizando la contraseña"
     );
   }
 };
@@ -163,7 +160,7 @@ export const resetPassword = async (
 
 /**
  * Update a user by ID
- * Backend: PUT /user/:id
+ * Backend: PUT /api/user/:id
  */
 export const updateUser = async (id: string, data: EditUserData) => {
   try {
@@ -171,16 +168,14 @@ export const updateUser = async (id: string, data: EditUserData) => {
     return res.data;
   } catch (err: any) {
     throw new Error(
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      "Error actualizando usuario"
+      err.message || "Error actualizando usuario"
     );
   }
 };
 
 /**
  * Delete a user by ID
- * Backend: DELETE /user/:id
+ * Backend: DELETE /api/user/:id
  */
 export const deleteUser = async (id: string) => {
   try {
@@ -188,35 +183,20 @@ export const deleteUser = async (id: string) => {
     return res.data;
   } catch (err: any) {
     throw new Error(
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      "Error eliminando usuario"
+      err.message || "Error eliminando usuario"
     );
   }
 };
 
 /**
  * Get a user by UID
- * Backend: GET /user/:id
- *
- * IMPORTANT:
- * Your backend returns a PLAIN user object:
- * {
- *   uid,
- *   email,
- *   displayName,
- *   provider,
- *   createdAt
- * }
+ * Backend: GET /api/user/:id
  */
 export const getUser = async (id: string): Promise<User | null> => {
   try {
     const res = await http.get(`/user/${id}`);
-
-    if (!res.data) return null;
-
-    return res.data as User; // <-- matches backend EXACTLY
-  } catch (err) {
-    return null; // to avoid frontend crashing
+    return res.data as User;
+  } catch {
+    return null;
   }
 };
