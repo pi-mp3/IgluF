@@ -2,35 +2,43 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { auth } from "../firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
 
-/**
- * Página de callback para OAuth (Google/GitHub)
- * 
- * Función:
- *  - Detecta usuario logueado tras OAuth
- *  - Actualiza AuthContext
- *  - Redirige automáticamente a /dashboard
- */
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const { loginFirebase } = useAuth();
+  const { setSessionFromOAuth } = useAuth();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        // Actualiza contexto y redirige al dashboard
-        loginFirebase(firebaseUser);
-        navigate("/dashboard");
-      } else {
-        // Si no hay usuario, vuelve a login
-        navigate("/login");
-      }
+    const params = new URLSearchParams(window.location.search);
+
+    const uid = params.get("uid");
+    const accessToken = params.get("token");
+    const provider = params.get("provider");
+
+    // Datos opcionales
+    const email = params.get("email");
+    const name = params.get("name");
+
+    // Validación mínima
+    if (!uid || !accessToken) {
+      navigate("/login");
+      return;
+    }
+
+    // Guardar sesión globalmente
+    setSessionFromOAuth({
+      uid,
+      accessToken,
+      provider: provider || "oauth",
+      email: email || null,
+      name: name || null,
     });
 
-    return () => unsubscribe();
-  }, [loginFirebase, navigate]);
+    navigate("/dashboard");
+  }, [navigate, setSessionFromOAuth]);
 
-  return <div style={{ textAlign: "center", marginTop: "2rem" }}>Cargando sesión...</div>;
+  return (
+    <div style={{ textAlign: "center", marginTop: "2rem" }}>
+      Procesando autenticación... (redirigiendo)
+    </div>
+  );
 }

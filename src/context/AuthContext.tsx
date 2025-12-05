@@ -1,78 +1,132 @@
+// src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { auth, User as FirebaseUser } from "../firebaseConfig";
-import { onAuthStateChanged, signOut } from "firebase/auth";
 
-// ====================== Types ======================
-
-export interface User {
+// ==================== Tipos ====================
+interface User {
   uid: string;
-  email: string | null;
+  email?: string | null;
+  name?: string | null;
+  provider?: string;
+}
+
+interface AuthTokens {
+  accessToken: string | null;
+  refreshToken: string | null;
 }
 
 interface AuthContextType {
   user: User | null;
+  tokens: AuthTokens;
   loading: boolean;
-  loginFirebase: (user: FirebaseUser) => void;
-  logout: () => Promise<void>;
+  setSessionFromOAuth: (data: {
+    uid: string;
+    accessToken: string;
+    refreshToken?: string;
+    provider?: string;
+    email?: string | null;
+    name?: string | null;
+  }) => void;
+  loginFirebase: (userData: User, accessToken?: string, refreshToken?: string) => void;
+  logout: () => void;
 }
 
-// ==================== Create Context ====================
-
+// ==================== Contexto ====================
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ==================== Provider Component ====================
-
+// ==================== Provider ====================
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [tokens, setTokens] = useState<AuthTokens>({
+    accessToken: null,
+    refreshToken: null,
+  });
   const [loading, setLoading] = useState(true);
 
-  // ==================== Session Persistence ====================
+  // ==================== Cargar sesión de localStorage ====================
   useEffect(() => {
-    // Leer user desde localStorage al iniciar
-    const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
+    const storedUser = localStorage.getItem("user");
+    const storedAccess = localStorage.getItem("accessToken");
+    const storedRefresh = localStorage.getItem("refreshToken");
 
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        const u: User = { uid: firebaseUser.uid, email: firebaseUser.email };
-        setUser(u);
-        localStorage.setItem("user", JSON.stringify(u));
-      } else {
-        setUser(null);
-        localStorage.removeItem("user");
-      }
-      setLoading(false);
-    });
+    if (storedUser && storedAccess) {
+      setUser(JSON.parse(storedUser));
+      setTokens({
+        accessToken: storedAccess,
+        refreshToken: storedRefresh,
+      });
+    }
 
-    return () => unsubscribe();
+    setLoading(false);
   }, []);
 
-  // ==================== Login Function ====================
-  const loginFirebase = (firebaseUser: FirebaseUser) => {
-    const u: User = { uid: firebaseUser.uid, email: firebaseUser.email };
-    setUser(u);
-    localStorage.setItem("user", JSON.stringify(u));
+  // ==================== Guardar sesión desde OAuth ====================
+  const setSessionFromOAuth = ({
+    uid,
+    accessToken,
+    refreshToken,
+    provider = "oauth",
+    email = null,
+    name = null,
+  }: {
+    uid: string;
+    accessToken: string;
+    refreshToken?: string;
+    provider?: string;
+    email?: string | null;
+    name?: string | null;
+  }) => {
+    const newUser: User = { uid, provider, email, name };
+    const newTokens: AuthTokens = { accessToken, refreshToken: refreshToken || null };
+
+    setUser(newUser);
+    setTokens(newTokens);
+
+    localStorage.setItem("user", JSON.stringify(newUser));
+    localStorage.setItem("accessToken", accessToken);
+    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
   };
 
-  // ==================== Logout Function ====================
-  const logout = async () => {
-    await signOut(auth);
+  // ==================== Guardar sesión desde Firebase ====================
+  const loginFirebase = (userData: User, accessToken?: string, refreshToken?: string) => {
+    setUser(userData);
+    setTokens({ accessToken: accessToken || null, refreshToken: refreshToken || null });
+
+    localStorage.setItem("user", JSON.stringify(userData));
+    if (accessToken) localStorage.setItem("accessToken", accessToken);
+    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+  };
+
+  // ==================== Logout global ====================
+  const logout = () => {
     setUser(null);
+    setTokens({ accessToken: null, refreshToken: null });
+
     localStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+
     window.location.href = "/login";
   };
 
-  // ==================== Return Context ====================
   return (
-    <AuthContext.Provider value={{ user, loading, loginFirebase, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        tokens,
+        loading,
+        setSessionFromOAuth,
+        loginFirebase,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-// ==================== Custom Hook ====================
-export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
+// ==================== Hook ====================
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }
