@@ -162,13 +162,15 @@ export default function Login(): JSX.Element {
 
           {/* Submit */}
           <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? "Iniciando..." : "Iniciar sesión"}
+            {loading ? "Iniciando..." : t("login.loginButton")}
           </button>
 
           {/* Divider */}
           <div className="auth-divider">
             <span className="auth-divider-line" />
-            <span className="auth-divider-text">o continuar con</span>
+            <span className="auth-divider-text">
+              {t("login.orContinueWith")}
+            </span>
             <span className="auth-divider-line" />
           </div>
 
