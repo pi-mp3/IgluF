@@ -76,7 +76,7 @@ export default function Profile() {
     if (!userId) return;
     const fetchUser = async () => {
       try {
-        const data: User | null = await getUser(userId);
+        const data = await getUser(userId) as User | null; 
         if (!data) {
           setError("No hay datos guardados. Completa tu perfil.");
           setIsEditing(true);

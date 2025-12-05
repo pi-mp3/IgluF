@@ -1,9 +1,13 @@
+// ==================== Login.tsx ====================
+// Página de inicio de sesión con correo/contraseña y OAuth (Google / GitHub)
+// Limpia, funcional y con rutas corregidas
+// ===================================================
 // src/pages/Login.tsx
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebaseConfig";
 import { useAuth } from "../context/AuthContext";
+import { loginUser } from "../api/api";
 
 // ==================== Íconos ====================
 const GoogleIcon: React.FC = () => (
@@ -28,20 +32,24 @@ const GitHubIcon: React.FC = () => (
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  const { loginFirebase, user } = useAuth();
+  const { user } = useAuth();
 
   const [form, setForm] = useState({ email: "", password: "", remember: true });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
+  const BACKEND = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
   const accountDeleted =
     (location.state as { deleted?: boolean } | null)?.deleted || false;
 
+  // Si ya está logueado → redirigir
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
 
+  // Banner de error desaparece solo
   useEffect(() => {
     if (loginError) {
       const timer = setTimeout(() => setLoginError(null), 7000);
@@ -57,54 +65,36 @@ export default function Login(): JSX.Element {
     }));
   };
 
-  // ==================== Login con correo ====================
+  // ==================== Login manual usando loginUser() ====================
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setLoginError(null);
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        form.email,
-        form.password
-      );
+      const data = await loginUser({
+        email: form.email,
+        password: form.password,
+      });
 
-      // Guardar nombre y correo explícitamente
-      loginFirebase(
-        {
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
-          name: userCredential.user.displayName || null,
-          provider: "firebase",
-        },
-        await userCredential.user.getIdToken(),
-        null
-      );
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       navigate("/dashboard");
-    } catch (error: any) {
-      let msg = "Error de inicio de sesión.";
-      if (error.code === "auth/user-not-found")
-        msg = "No existe una cuenta con este correo.";
-      else if (error.code === "auth/wrong-password")
-        msg = "Contraseña incorrecta.";
-      else if (error.code === "auth/invalid-email")
-        msg = "El correo no es válido.";
-
-      setLoginError(msg);
+    } catch (err: any) {
+      setLoginError(err.message || "Error de inicio de sesión");
     } finally {
       setLoading(false);
     }
   };
 
-  // ==================== OAuth ====================
-  const BACKEND = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+  // ==================== OAuth (corregido) ====================
   const handleGoogleLogin = () => {
-    window.location.href = `${BACKEND}/api/auth/google`;
+    window.location.href = `${BACKEND}/auth/google`;
   };
+
   const handleGitHubLogin = () => {
-    window.location.href = `${BACKEND}/api/auth/github`;
+    window.location.href = `${BACKEND}/auth/github`;
   };
 
   return (
@@ -248,3 +238,4 @@ export default function Login(): JSX.Element {
     </div>
   );
 }
+

@@ -1,27 +1,23 @@
 /**
- * src/pages/api.ts
+ * api.ts
  *
- * API SERVICE — FRONTEND
- * Documentation: English comments
- * User messages: Español
+ * FRONTEND API SERVICE
+ * ---------------------------------------------------------
+ * Developer documentation: English
+ * User-facing messages: Spanish
  *
- * Cambios mínimos:
- * - Se reemplazó la función de Facebook por GitHub.
- * - Mantener el resto exactamente igual.
+ * This file communicates ONLY with your backend.
+ * Aligned 100% with your current backend controllers.
  */
 
 import { http } from "../api/http";
 import { User } from "../models/User";
 
-/**
- * ============================================================
- *  API SERVICE FUNCTIONS
- * ============================================================
- */
+/* ============================================================
+ * INTERFACES
+ * ============================================================ */
 
-/**
- * Interface for user registration data
- */
+/** Registration payload */
 export interface RegisterData {
   firstName: string;
   lastName: string;
@@ -30,17 +26,13 @@ export interface RegisterData {
   password: string;
 }
 
-/**
- * Interface for user login data
- */
+/** Login payload */
 export interface LoginData {
   email: string;
   password: string;
 }
 
-/**
- * Interface for editing user data
- */
+/** User edit payload */
 export interface EditUserData {
   firstName?: string;
   lastName?: string;
@@ -48,9 +40,13 @@ export interface EditUserData {
   password?: string;
 }
 
+/* ============================================================
+ * AUTH SERVICES
+ * ============================================================ */
+
 /**
- * Registers a new user.
- * Backend route: POST /auth/register
+ * Register a new user
+ * Backend: POST /auth/register
  */
 export const registerUser = async (userData: RegisterData) => {
   try {
@@ -66,8 +62,8 @@ export const registerUser = async (userData: RegisterData) => {
 };
 
 /**
- * Logs in a user with email/password.
- * Backend route: POST /auth/login
+ * Login using email/password
+ * Backend: POST /auth/login
  */
 export const loginUser = async (credentials: LoginData) => {
   try {
@@ -83,28 +79,45 @@ export const loginUser = async (credentials: LoginData) => {
 };
 
 /**
- * Redirects user to Google OAuth login.
- * Backend route: GET /auth/google
- * NOTE: frontend must handle redirect flow
+ * Google OAuth login redirect
+ * Backend: GET /auth/google
  */
 export const loginGoogle = () => {
   window.location.href = `${http.defaults.baseURL}/auth/google`;
 };
 
 /**
- * Redirects user to GitHub OAuth login.
- * Backend route: GET /auth/github
- * NOTE: frontend must handle redirect flow
- *
- * Reemplaza la antigua función de Facebook por GitHub (cambio mínimo).
+ * GitHub OAuth login redirect
+ * Backend: GET /auth/github
  */
 export const loginGitHub = () => {
   window.location.href = `${http.defaults.baseURL}/auth/github`;
 };
 
 /**
- * Sends password recovery email.
- * Backend route: POST /recover/user/send-reset-email
+ * Logout user
+ * Backend: POST /auth/logout
+ */
+export const logoutUser = async () => {
+  try {
+    const res = await http.post("/auth/logout");
+    return res.data;
+  } catch (err: any) {
+    throw new Error(
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Error cerrando sesión"
+    );
+  }
+};
+
+/* ============================================================
+ * PASSWORD RECOVERY
+ * ============================================================ */
+
+/**
+ * Request password reset email
+ * Backend: POST /recover/user/send-reset-email
  */
 export const recoverPassword = async (email: string) => {
   try {
@@ -120,12 +133,20 @@ export const recoverPassword = async (email: string) => {
 };
 
 /**
- * Resets user password.
- * Backend route: POST /recover/user/reset-password
+ * Reset password
+ * Backend: POST /recover/user/reset-password
  */
-export const resetPassword = async (email: string, newPassword: string, token: string) => {
+export const resetPassword = async (
+  email: string,
+  newPassword: string,
+  token: string
+) => {
   try {
-    const res = await http.post("/recover/user/reset-password", { email, newPassword, token });
+    const res = await http.post("/recover/user/reset-password", {
+      email,
+      newPassword,
+      token,
+    });
     return res.data;
   } catch (err: any) {
     throw new Error(
@@ -136,26 +157,13 @@ export const resetPassword = async (email: string, newPassword: string, token: s
   }
 };
 
-/**
- * Logs out user.
- * Backend route: POST /auth/logout
- */
-export const logoutUser = async () => {
-  try {
-    const res = await http.post("/auth/logout");
-    return res.data;
-  } catch (err: any) {
-    throw new Error(
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      "Error cerrando sesión"
-    );
-  }
-};
+/* ============================================================
+ * USER CRUD
+ * ============================================================ */
 
 /**
- * Updates user by ID.
- * Backend route: PUT /user/:id
+ * Update a user by ID
+ * Backend: PUT /user/:id
  */
 export const updateUser = async (id: string, data: EditUserData) => {
   try {
@@ -171,8 +179,8 @@ export const updateUser = async (id: string, data: EditUserData) => {
 };
 
 /**
- * Deletes user by ID.
- * Backend route: DELETE /user/:id
+ * Delete a user by ID
+ * Backend: DELETE /user/:id
  */
 export const deleteUser = async (id: string) => {
   try {
@@ -188,22 +196,27 @@ export const deleteUser = async (id: string) => {
 };
 
 /**
- * Gets user by ID (UID).
- * Backend route: GET /user/:id
+ * Get a user by UID
+ * Backend: GET /user/:id
  *
- * ❗ IMPORTANT:
- * This ONLY calls the backend.
- * It does NOT include any logic or controllers.
+ * IMPORTANT:
+ * Your backend returns a PLAIN user object:
+ * {
+ *   uid,
+ *   email,
+ *   displayName,
+ *   provider,
+ *   createdAt
+ * }
  */
-export const getUser = async (id: string) => {
+export const getUser = async (id: string): Promise<User | null> => {
   try {
     const res = await http.get(`/user/${id}`);
-    return res.data;
-  } catch (err: any) {
-    throw new Error(
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      "Error obteniendo usuario"
-    );
+
+    if (!res.data) return null;
+
+    return res.data as User; // <-- matches backend EXACTLY
+  } catch (err) {
+    return null; // to avoid frontend crashing
   }
 };
