@@ -7,7 +7,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { loginUser } from "../api";
+import { loginUser } from "./api";
+import { useTranslation } from "react-i18next";
 
 // ==================== Íconos ====================
 const GoogleIcon: React.FC = () => (
@@ -33,6 +34,7 @@ export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [form, setForm] = useState({ email: "", password: "", remember: true });
   const [loading, setLoading] = useState(false);
@@ -90,11 +92,11 @@ export default function Login(): JSX.Element {
 
   // ==================== OAuth (corregido) ====================
   const handleGoogleLogin = () => {
-    window.location.href = `${BACKEND}/auth/google`;
+    window.location.href = `${BACKEND}/api/auth/google`;
   };
 
   const handleGitHubLogin = () => {
-    window.location.href = `${BACKEND}/auth/github`;
+    window.location.href = `${BACKEND}/api/auth/github`;
   };
 
   return (
