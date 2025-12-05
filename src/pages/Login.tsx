@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { loginUser } from "../api/api";
+import { loginUser } from "../api";
 
 // ==================== Íconos ====================
 const GoogleIcon: React.FC = () => (
