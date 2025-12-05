@@ -1,4 +1,11 @@
-// src/components/ProtectedRoute.tsx
+/**
+ * ProtectedRoute.tsx
+ *
+ * Route protection component.
+ * Blocks access to private routes if the user is not authenticated.
+ * Authentication is validated using the global AuthContext.
+ */
+
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -11,9 +18,9 @@ export default function ProtectedRoute({ children }: Props): JSX.Element {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Mientras Firebase responde, no redirigimos
+  // While auth state is loading, avoid redirecting
   if (loading) {
-    return null; // aquí podrías poner un spinner si quieres
+    return null; // You may place a spinner here if needed
   }
 
   if (!user) {
@@ -22,3 +29,4 @@ export default function ProtectedRoute({ children }: Props): JSX.Element {
 
   return children;
 }
+

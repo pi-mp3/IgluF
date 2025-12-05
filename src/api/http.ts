@@ -1,51 +1,56 @@
-// src/api/http.ts
-import axios from 'axios';
-
 /**
- * Axios instance configured for the backend API.
+ * http.ts
  *
- * Base URL: http://localhost:5000/api
- * Default headers: 'Content-Type': 'application/json'
+ * FRONTEND HTTP CLIENT (axios)
+ * ---------------------------------------------------------
+ * This file configures a single axios instance used throughout
+ * the frontend to interact with your backend API.
+ *
+ * - Ensures a single baseURL coming from VITE_BACKEND_URL (fallback to localhost).
+ * - Sets withCredentials to true so cookies (if used) are sent.
+ * - Adds a simple response interceptor to normalize error messages.
+ *
+ * NOTE: Do not change UI copy. This file is purely internal.
  */
 
+import axios from "axios";
+
+const BACKEND = (import.meta.env.VITE_BACKEND_URL as string) || "http://localhost:5000";
 
 export const http = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  headers: { "Content-Type": "application/json" },
+  baseURL: BACKEND + "/api", // prefix all requests with /api to match your backend mounting (app.use('/api', router))
+  timeout: 15000,
+  withCredentials: true, // IMPORTANT: allow cookies to be sent for session-based auth
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-
-/**
- * AuthAPI object with authentication-related utilities.
- * Currently only implements logout.
- */
-export const AuthAPI = {
-  /**
-   * Logs out the current user.
-   *
-   * Steps:
-   * 1. Retrieves JWT access token from localStorage.
-   * 2. Calls backend POST /auth/logout with Bearer token.
-   * 3. Removes accessToken and refreshToken from localStorage.
-   *
-   * @returns {Promise<void>} Resolves when logout completes.
-   */
-  logout: async (): Promise<void> => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) return;
-
-      await http.post(
-        '/auth/logout',
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // Clear stored tokens
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-    } catch (err) {
-      console.error('Logout error:', err);
+// Optional: attach token from localStorage to Authorization header for JWT flows
+http.interceptors.request.use((config) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-  },
-};
+  } catch (e) {
+    // ignore
+  }
+  return config;
+});
+
+// Normalize errors
+http.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    // Build a helpful error shape
+    const message =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      "Network error";
+    return Promise.reject(new Error(message));
+  }
+);
+
+export default http;
