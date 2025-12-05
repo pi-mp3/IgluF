@@ -1,15 +1,22 @@
-// ==================== Login.tsx ====================
-// Página de inicio de sesión con correo/contraseña y OAuth (Google / GitHub)
-// Limpia, funcional y con rutas corregidas
-// ===================================================
-// src/pages/Login.tsx
+/**
+ * Login.tsx
+ *
+ * Handles user login for Iglu application.
+ * Supports:
+ *  - Manual email/password login via Firebase + backend JWT
+ *  - Google OAuth login
+ *  - GitHub OAuth login
+ *
+ * All user-facing messages are in Spanish.
+ * Author: Iglu Team
+ */
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { loginUser } from "../api/api";
+import { loginUser } from "./api"; // ✅ Backend API function
 
-// ==================== Íconos ====================
+// ==================== Icons ====================
 const GoogleIcon: React.FC = () => (
   <svg width="18" height="18" viewBox="0 0 533.5 544.3" aria-hidden>
     <path fill="#4285F4" d="M533.5 278.4c0-17.4-1.5-34.1-4.3-50.2H272v95h147.5c-6.4 34.4-25 63.5-53.3 83.2l86.1 67.1c50.3-46.4 80.2-114.8 80.2-195.1z" />
@@ -29,10 +36,11 @@ const GitHubIcon: React.FC = () => (
   </svg>
 );
 
+// ==================== Login Component ====================
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, setSessionFromLogin } = useAuth();
 
   const [form, setForm] = useState({ email: "", password: "", remember: true });
   const [loading, setLoading] = useState(false);
@@ -40,16 +48,15 @@ export default function Login(): JSX.Element {
   const [loginError, setLoginError] = useState<string | null>(null);
 
   const BACKEND = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+  const state = location.state as { deleted?: boolean } | null;
+  const accountDeleted = state?.deleted ?? false;
 
-  const accountDeleted =
-    (location.state as { deleted?: boolean } | null)?.deleted || false;
-
-  // Si ya está logueado → redirigir
+  // Auto redirect if already logged in
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
 
-  // Banner de error desaparece solo
+  // Auto dismiss error
   useEffect(() => {
     if (loginError) {
       const timer = setTimeout(() => setLoginError(null), 7000);
@@ -57,76 +64,49 @@ export default function Login(): JSX.Element {
     }
   }, [loginError]);
 
+  // ==================== Handlers ====================
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
-  // ==================== Login manual usando loginUser() ====================
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setLoginError(null);
 
     try {
-      const data = await loginUser({
-        email: form.email,
-        password: form.password,
-      });
+      const data: { token: string; user: { uid: string; email?: string; name?: string } } =
+        await loginUser({ email: form.email, password: form.password });
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
+      setSessionFromLogin({ user: data.user, token: data.token });
       navigate("/dashboard");
     } catch (err: any) {
-      setLoginError(err.message || "Error de inicio de sesión");
+      setLoginError(err.response?.data?.message || "Error de inicio de sesión");
     } finally {
       setLoading(false);
     }
   };
 
-  // ==================== OAuth (corregido) ====================
-  const handleGoogleLogin = () => {
-    window.location.href = `${BACKEND}/auth/google`;
-  };
+  const handleGoogleLogin = () => (window.location.href = `${BACKEND}/api/auth/google`);
+  const handleGitHubLogin = () => (window.location.href = `${BACKEND}/api/auth/github`);
 
-  const handleGitHubLogin = () => {
-    window.location.href = `${BACKEND}/auth/github`;
-  };
-
+  // ==================== JSX ====================
   return (
     <div className="auth-page auth-page--compact">
       <div className="auth-wrapper auth-wrapper--compact">
         <h1 className="auth-title">Bienvenido de nuevo</h1>
         <p className="auth-subtitle">Inicia sesión para continuar</p>
 
-        {accountDeleted && (
-          <div className="login-success-banner">
-            ✔ Tu cuenta fue eliminada correctamente.
-          </div>
-        )}
-
+        {accountDeleted && <div className="login-success-banner">✔ Tu cuenta fue eliminada correctamente.</div>}
         {loginError && (
-          <div
-            style={{
-              marginTop: "1rem",
-              padding: "0.8rem 1rem",
-              borderRadius: "8px",
-              backgroundColor: "#fdecea",
-              color: "#b71c1c",
-              fontSize: "0.95rem",
-              border: "1px solid #f5c2c0",
-              textAlign: "center",
-            }}
-          >
+          <div className="auth-error-banner">
             ⚠️ {loginError}
           </div>
         )}
 
         <form className="auth-card" onSubmit={handleSubmit}>
+          {/* Email */}
           <label className="auth-label">
             Correo electrónico
             <div className="auth-input-wrapper">
@@ -139,10 +119,12 @@ export default function Login(): JSX.Element {
                 placeholder="ejemplo@correo.com"
                 className="auth-input"
                 required
+                autoComplete="username"
               />
             </div>
           </label>
 
+          {/* Password */}
           <label className="auth-label">
             Contraseña
             <div className="auth-input-wrapper" style={{ position: "relative" }}>
@@ -155,81 +137,55 @@ export default function Login(): JSX.Element {
                 placeholder="********"
                 className="auth-input"
                 required
+                autoComplete="current-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: "10px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "1.3rem",
-                }}
+                className="auth-show-password"
               >
                 {showPassword ? "👁️" : "🙈"}
               </button>
             </div>
           </label>
 
+          {/* Remember & Forgot */}
           <div className="auth-row">
             <label className="auth-remember">
-              <input
-                type="checkbox"
-                name="remember"
-                checked={form.remember}
-                onChange={handleChange}
-              />
+              <input type="checkbox" name="remember" checked={form.remember} onChange={handleChange} />
               Recordarme
             </label>
-
-            <button
-              type="button"
-              className="auth-link"
-              onClick={() => navigate("/forgot-password")}
-            >
+            <button type="button" className="auth-link" onClick={() => navigate("/forgot-password")}>
               ¿Olvidaste tu contraseña?
             </button>
           </div>
 
+          {/* Submit */}
           <button type="submit" className="auth-submit" disabled={loading}>
             {loading ? "Iniciando..." : "Iniciar sesión"}
           </button>
 
+          {/* Divider */}
           <div className="auth-divider">
             <span className="auth-divider-line" />
             <span className="auth-divider-text">o continuar con</span>
             <span className="auth-divider-line" />
           </div>
 
+          {/* OAuth buttons */}
           <div className="auth-social-row">
-            <button
-              type="button"
-              className="auth-social auth-social-google"
-              onClick={handleGoogleLogin}
-            >
+            <button type="button" className="auth-social auth-social-google" onClick={handleGoogleLogin}>
               <GoogleIcon /> <span>Google</span>
             </button>
-
-            <button
-              type="button"
-              className="auth-social auth-social-github"
-              onClick={handleGitHubLogin}
-            >
+            <button type="button" className="auth-social auth-social-github" onClick={handleGitHubLogin}>
               <GitHubIcon /> <span>GitHub</span>
             </button>
           </div>
 
+          {/* Register link */}
           <p className="auth-bottom-text">
             ¿Aún no tienes cuenta?{" "}
-            <button
-              type="button"
-              className="auth-link"
-              onClick={() => navigate("/register")}
-            >
+            <button type="button" className="auth-link" onClick={() => navigate("/register")}>
               Crear una cuenta
             </button>
           </p>
@@ -238,4 +194,3 @@ export default function Login(): JSX.Element {
     </div>
   );
 }
-

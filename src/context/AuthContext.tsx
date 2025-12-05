@@ -1,110 +1,144 @@
-// src/context/AuthContext.tsx
+/**
+ * AuthContext.tsx
+ *
+ * GLOBAL AUTHENTICATION CONTEXT (JWT BASED)
+ * ---------------------------------------------------------
+ * Manages:
+ * - User session state
+ * - JWT persistence via localStorage
+ * - OAuth session hydration
+ * - Global logout
+ *
+ * User-facing messages: Spanish
+ */
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-// ==================== Tipos ====================
-interface User {
+/* ============================================================
+ * TYPES
+ * ============================================================ */
+
+export interface User {
   uid: string;
   email?: string | null;
   name?: string | null;
   provider?: string;
 }
 
-interface AuthTokens {
-  accessToken: string | null;
-  refreshToken: string | null;
-}
-
 interface AuthContextType {
   user: User | null;
-  tokens: AuthTokens;
   loading: boolean;
   setSessionFromOAuth: (data: {
     uid: string;
-    accessToken: string;
-    refreshToken?: string;
+    token: string;
     provider?: string;
     email?: string | null;
     name?: string | null;
   }) => void;
-  loginFirebase: (userData: User, accessToken?: string, refreshToken?: string) => void;
+  setSessionFromLogin: (data: { user: User; token: string }) => void;
   logout: () => void;
 }
 
-// ==================== Contexto ====================
+/* ============================================================
+ * CONTEXT
+ * ============================================================ */
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ==================== Provider ====================
+/* ============================================================
+ * PROVIDER
+ * ============================================================ */
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [tokens, setTokens] = useState<AuthTokens>({
-    accessToken: null,
-    refreshToken: null,
-  });
   const [loading, setLoading] = useState(true);
 
-  // ==================== Cargar sesión de localStorage ====================
+  /** Load session from localStorage safely */
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedAccess = localStorage.getItem("accessToken");
-    const storedRefresh = localStorage.getItem("refreshToken");
+    try {
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("token");
 
-    if (storedUser && storedAccess) {
-      setUser(JSON.parse(storedUser));
-      setTokens({
-        accessToken: storedAccess,
-        refreshToken: storedRefresh,
-      });
+      if (
+        storedUser &&
+        storedUser !== "undefined" &&
+        storedToken &&
+        storedToken !== "undefined"
+      ) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (err) {
+      console.error("Failed to load user from localStorage:", err);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }, []);
 
-  // ==================== Guardar sesión desde OAuth ====================
+  /** Hydrate session from OAuth login */
   const setSessionFromOAuth = ({
     uid,
-    accessToken,
-    refreshToken,
+    token,
     provider = "oauth",
     email = null,
     name = null,
   }: {
     uid: string;
-    accessToken: string;
-    refreshToken?: string;
+    token: string;
     provider?: string;
     email?: string | null;
     name?: string | null;
   }) => {
     const newUser: User = { uid, provider, email, name };
-    const newTokens: AuthTokens = { accessToken, refreshToken: refreshToken || null };
 
-    setUser(newUser);
-    setTokens(newTokens);
+    setUser(prev => {
+      if (
+        prev?.uid === newUser.uid &&
+        prev?.email === newUser.email &&
+        prev?.name === newUser.name &&
+        prev?.provider === newUser.provider
+      ) {
+        return prev; // evitar re-render innecesario
+      }
+      return newUser;
+    });
 
-    localStorage.setItem("user", JSON.stringify(newUser));
-    localStorage.setItem("accessToken", accessToken);
-    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+    try {
+      localStorage.setItem("user", JSON.stringify(newUser));
+      localStorage.setItem("token", token);
+    } catch (err) {
+      console.error("Failed to save session to localStorage:", err);
+    }
   };
 
-  // ==================== Guardar sesión desde Firebase ====================
-  const loginFirebase = (userData: User, accessToken?: string, refreshToken?: string) => {
-    setUser(userData);
-    setTokens({ accessToken: accessToken || null, refreshToken: refreshToken || null });
+  /** Manual login (email/password) */
+  const setSessionFromLogin = ({ user, token }: { user: User; token: string }) => {
+    setUser(prev => {
+      if (
+        prev?.uid === user.uid &&
+        prev?.email === user.email &&
+        prev?.name === user.name &&
+        prev?.provider === user.provider
+      ) {
+        return prev;
+      }
+      return user;
+    });
 
-    localStorage.setItem("user", JSON.stringify(userData));
-    if (accessToken) localStorage.setItem("accessToken", accessToken);
-    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+    try {
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
+    } catch (err) {
+      console.error("Failed to save session to localStorage:", err);
+    }
   };
 
-  // ==================== Logout global ====================
+  /** Global logout */
   const logout = () => {
     setUser(null);
-    setTokens({ accessToken: null, refreshToken: null });
-
     localStorage.removeItem("user");
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-
+    localStorage.removeItem("token");
     window.location.href = "/login";
   };
 
@@ -112,10 +146,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        tokens,
         loading,
         setSessionFromOAuth,
-        loginFirebase,
+        setSessionFromLogin,
         logout,
       }}
     >
@@ -124,7 +157,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// ==================== Hook ====================
+/* ============================================================
+ * HOOK
+ * ============================================================ */
+
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
