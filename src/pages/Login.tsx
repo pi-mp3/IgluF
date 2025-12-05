@@ -33,7 +33,7 @@ const GitHubIcon: React.FC = () => (
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, loginFirebase } = useAuth();
   const { t } = useTranslation();
 
   const [form, setForm] = useState({ email: "", password: "", remember: true });
@@ -79,8 +79,16 @@ export default function Login(): JSX.Element {
         password: form.password,
       });
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      // Usar AuthContext para guardar la sesión correctamente
+      loginFirebase(
+        {
+          uid: data.user.uid,
+          email: data.user.email,
+          name: data.user.name,
+          provider: 'email'
+        },
+        data.token
+      );
 
       navigate("/dashboard");
     } catch (err: any) {

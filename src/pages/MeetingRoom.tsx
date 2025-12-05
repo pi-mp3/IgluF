@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSocket } from "../services/useSocket";
-//import { connectSocket } from "../services/socket";
+
 interface ChatMessage {
   userId: string;
   text: string;
@@ -20,29 +20,28 @@ export default function MeetingRoom() {
 
   const socketRef = useRef<any>(null);
 
-  // ⬇️ Conexión al socket y unión a la reunión
+  // Conexión al socket y unión a la reunión
   useEffect(() => {
     async function connect() {
       try {
         const socket = await getSocket();
         socketRef.current = socket;
 
-        // Unirse a la reunión
         socket.emit("joinMeeting", { meetingId });
 
         socket.on("meeting:participants", (list) => {
-        setParticipants(list);
+          setParticipants(list);
         });
 
         socket.on("userJoined", ({ userId }) =>
           setParticipants((prev) =>
-        prev.includes(userId) ? prev : [...prev, userId]
-        ));
+            prev.includes(userId) ? prev : [...prev, userId]
+          )
+        );
 
         socket.on("receiveMessage", (msg) => {
           setMessages((prev) => [...prev, msg]);
-    });
-
+        });
 
         socket.on("meeting:error", (err) => {
           console.error("⚠️ Meeting error:", err);
