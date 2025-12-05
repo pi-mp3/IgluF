@@ -79,6 +79,11 @@ export default function Login(): JSX.Element {
         password: form.password,
       });
 
+      // Validar que la respuesta tenga la estructura correcta
+      if (!data || !data.user || !data.user.uid) {
+        throw new Error("Respuesta del servidor inválida");
+      }
+
       // Usar AuthContext para guardar la sesión correctamente
       loginFirebase(
         {
@@ -92,6 +97,7 @@ export default function Login(): JSX.Element {
 
       navigate("/dashboard");
     } catch (err: any) {
+      console.error("Login error completo:", err);
       setLoginError(err.message || "Error de inicio de sesión");
     } finally {
       setLoading(false);
