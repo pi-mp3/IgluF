@@ -4,12 +4,12 @@
  * ============================================================
  *
  * Description:
- * Manages authenticated user's profile with full CRUD operations
- * and logout, using Firebase Auth and backend. Includes confirmation
- * modals for logout and delete, styled like the second design.
+ * Manages the authenticated user's profile with full CRUD operations
+ * and logout, using Firebase Auth and backend API. Includes confirmation
+ * modals for logout and delete, styled with consistent button design.
  *
  * UI:
- *  - All UI text in Spanish
+ *  - All user-facing text is in Spanish
  *
  * Backend Contract:
  * {
@@ -31,6 +31,7 @@ import { auth } from "../firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { getUser, updateUser, deleteUser } from "./api";
 import { User } from "../models/User";
+import { useAuth } from "../context/AuthContext";
 
 interface ProfileForm {
   name: string;
@@ -41,6 +42,7 @@ interface ProfileForm {
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { logout } = useAuth(); // usa el contexto global
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -70,7 +72,7 @@ export default function Profile() {
     return () => unsubscribe();
   }, [navigate]);
 
-  // Fetch user profile
+  // Fetch user profile from backend
   useEffect(() => {
     if (!userId) return;
     const fetchUser = async () => {
@@ -103,6 +105,7 @@ export default function Profile() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Save profile changes
   const handleSave = async () => {
     if (!userId) return;
     setError("");
@@ -127,12 +130,14 @@ export default function Profile() {
     }
   };
 
+  // Delete account
   const handleDelete = () => setShowDeleteModal(true);
   const confirmDelete = async () => {
     if (!userId) return;
     try {
       await deleteUser(userId);
       await signOut(auth);
+      logout(); // cierra sesión en contexto global
       navigate("/login");
     } catch (err: any) {
       setError("Error al eliminar cuenta: " + err.message);
@@ -141,11 +146,13 @@ export default function Profile() {
     }
   };
 
+  // Logout
   const handleLogout = () => setShowLogoutModal(true);
   const confirmLogout = async () => {
     try {
       await signOut(auth);
-      navigate("/login");
+      logout(); // asegura cerrar sesión en contexto global
+      navigate("/login"); // redirige correctamente a login
     } catch (err: any) {
       setError("Error al cerrar sesión: " + err.message);
     } finally {
@@ -196,7 +203,6 @@ export default function Profile() {
           </div>
 
           <div className="profile-grid">
-            {/** Nombre */}
             <label className="auth-label">
               Nombre
               <div
@@ -216,7 +222,6 @@ export default function Profile() {
               </div>
             </label>
 
-            {/** Apellido */}
             <label className="auth-label">
               Apellido
               <div
@@ -236,7 +241,6 @@ export default function Profile() {
               </div>
             </label>
 
-            {/** Edad */}
             <label className="auth-label">
               Edad
               <div
@@ -256,7 +260,6 @@ export default function Profile() {
               </div>
             </label>
 
-            {/** Email */}
             <label className="auth-label">
               Correo electrónico
               <div className="auth-input-wrapper">
@@ -292,7 +295,12 @@ export default function Profile() {
             <div className="profile-secondary-actions">
               <button
                 type="button"
-                className="profile-delete-btn"
+                className="profile-delete-btn profile-primary-btn"
+                style={{
+                  backgroundColor: "#ff2600ff",
+                  color: "#fff",
+                  borderRadius: "25px", // igual que el botón de editar
+                }}
                 onClick={handleDelete}
               >
                 Eliminar cuenta
@@ -300,7 +308,12 @@ export default function Profile() {
 
               <button
                 type="button"
-                className="profile-logout-btn"
+                className="profile-logout-btn profile-primary-btn"
+                style={{
+                  backgroundColor: "#e53935",
+                  color: "#fff",
+                  borderRadius: "25px", // igual que el botón de editar
+                }}
                 onClick={handleLogout}
               >
                 Cerrar sesión

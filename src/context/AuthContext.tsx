@@ -1,137 +1,132 @@
-/**
- * AuthContext.tsx
- *
- * Authentication context for the application.
- *
- * Features:
- *  - Manages user authentication state with Firebase Auth
- *  - Provides login and logout functions
- *  - Persists user session using localStorage
- *  - Provides loading state while checking auth status
- *  - Can be used globally in the app via React Context
- *
- * Usage:
- *  <AuthProvider>
- *      <App />
- *  </AuthProvider>
- * 
- * Hooks:
- *  - useAuth(): returns { user, loading, loginFirebase, logout }
- */
-
+// src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { auth, User as FirebaseUser } from "../firebaseConfig";
-import { onAuthStateChanged, signOut } from "firebase/auth";
 
-// ====================== Types ======================
-
-/**
- * User object stored in context and localStorage
- */
-export interface User {
-  uid: string;            // Firebase user UID
-  email: string | null;    // User email
+// ==================== Tipos ====================
+interface User {
+  uid: string;
+  email?: string | null;
+  name?: string | null;
+  provider?: string;
 }
 
-/**
- * Context value type
- */
+interface AuthTokens {
+  accessToken: string | null;
+  refreshToken: string | null;
+}
+
 interface AuthContextType {
-  user: User | null;                 // Current authenticated user
-  loading: boolean;                  // Loading state while checking session
-  loginFirebase: (user: FirebaseUser) => void; // Login using Firebase User object
-  logout: () => Promise<void>;       // Logout function
+  user: User | null;
+  tokens: AuthTokens;
+  loading: boolean;
+  setSessionFromOAuth: (data: {
+    uid: string;
+    accessToken: string;
+    refreshToken?: string;
+    provider?: string;
+    email?: string | null;
+    name?: string | null;
+  }) => void;
+  loginFirebase: (userData: User, accessToken?: string, refreshToken?: string) => void;
+  logout: () => void;
 }
 
-// ==================== Create Context ====================
-
+// ==================== Contexto ====================
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ==================== Provider Component ====================
-
-/**
- * AuthProvider
- *
- * Wrap your application with this provider to make
- * authentication state available globally.
- */
+// ==================== Provider ====================
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [tokens, setTokens] = useState<AuthTokens>({
+    accessToken: null,
+    refreshToken: null,
+  });
   const [loading, setLoading] = useState(true);
 
-  // ==================== Session Persistence ====================
+  // ==================== Cargar sesión de localStorage ====================
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in
-        const u: User = { uid: firebaseUser.uid, email: firebaseUser.email };
-        setUser(u);
-        localStorage.setItem("user", JSON.stringify(u));
-      } else {
-        // User is signed out
-        setUser(null);
-        localStorage.removeItem("user");
-      }
-      setLoading(false);
-    });
+    const storedUser = localStorage.getItem("user");
+    const storedAccess = localStorage.getItem("accessToken");
+    const storedRefresh = localStorage.getItem("refreshToken");
 
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
+    if (storedUser && storedAccess) {
+      setUser(JSON.parse(storedUser));
+      setTokens({
+        accessToken: storedAccess,
+        refreshToken: storedRefresh,
+      });
+    }
+
+    setLoading(false);
   }, []);
 
-  // ==================== Login Function ====================
+  // ==================== Guardar sesión desde OAuth ====================
+  const setSessionFromOAuth = ({
+    uid,
+    accessToken,
+    refreshToken,
+    provider = "oauth",
+    email = null,
+    name = null,
+  }: {
+    uid: string;
+    accessToken: string;
+    refreshToken?: string;
+    provider?: string;
+    email?: string | null;
+    name?: string | null;
+  }) => {
+    const newUser: User = { uid, provider, email, name };
+    const newTokens: AuthTokens = { accessToken, refreshToken: refreshToken || null };
 
-  /**
-   * loginFirebase
-   *
-   * Call this function after successful Firebase Auth login
-   * to update context state and localStorage.
-   *
-   * @param firebaseUser - Firebase User object from signIn
-   */
-  const loginFirebase = (firebaseUser: FirebaseUser) => {
-    const u: User = { uid: firebaseUser.uid, email: firebaseUser.email };
-    setUser(u);
-    localStorage.setItem("user", JSON.stringify(u));
+    setUser(newUser);
+    setTokens(newTokens);
+
+    localStorage.setItem("user", JSON.stringify(newUser));
+    localStorage.setItem("accessToken", accessToken);
+    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
   };
 
-  // ==================== Logout Function ====================
+  // ==================== Guardar sesión desde Firebase ====================
+  const loginFirebase = (userData: User, accessToken?: string, refreshToken?: string) => {
+    setUser(userData);
+    setTokens({ accessToken: accessToken || null, refreshToken: refreshToken || null });
 
-  /**
-   * logout
-   *
-   * Signs out the user from Firebase Auth,
-   * clears localStorage, updates context state,
-   * and redirects to /login.
-   */
-  const logout = async () => {
-    await signOut(auth);
+    localStorage.setItem("user", JSON.stringify(userData));
+    if (accessToken) localStorage.setItem("accessToken", accessToken);
+    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+  };
+
+  // ==================== Logout global ====================
+  const logout = () => {
     setUser(null);
+    setTokens({ accessToken: null, refreshToken: null });
+
     localStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+
     window.location.href = "/login";
   };
 
-  // ==================== Return Context ====================
-
   return (
-    <AuthContext.Provider value={{ user, loading, loginFirebase, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        tokens,
+        loading,
+        setSessionFromOAuth,
+        loginFirebase,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-// ==================== Custom Hook ====================
-
-/**
- * useAuth
- *
- * Hook to access authentication context.
- * Throws an error if used outside AuthProvider.
- *
- * @returns {AuthContextType} - { user, loading, loginFirebase, logout }
- */
-export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
+// ==================== Hook ====================
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }

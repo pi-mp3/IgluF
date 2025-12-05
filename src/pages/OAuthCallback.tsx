@@ -1,41 +1,44 @@
-import { useEffect, useState } from "react";
+// src/pages/OAuthCallback.tsx
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { http } from "../api/http"; // usar cliente axios centralizado
+import { useAuth } from "../context/AuthContext";
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const { setSessionFromOAuth } = useAuth();
 
   useEffect(() => {
-    const sendCode = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
+    const params = new URLSearchParams(window.location.search);
 
-      if (!code) {
-        console.error("No se recibió el code de Google OAuth");
-        navigate("/login");
-        return;
-      }
+    const uid = params.get("uid");
+    const accessToken = params.get("token");
+    const provider = params.get("provider");
 
-      try {
-        const res = await http.get(`/auth/google/callback?code=${code}`, { withCredentials: true });
+    // Datos opcionales
+    const email = params.get("email");
+    const name = params.get("name");
 
-        if (res.data.success) {
-          navigate("/dashboard");
-        } else {
-          console.error("Autenticación fallida en backend");
-          navigate("/login");
-        }
-      } catch (err: any) {
-        console.error("Error enviando code al backend:", err.response?.data || err);
-        navigate("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Validación mínima
+    if (!uid || !accessToken) {
+      navigate("/login");
+      return;
+    }
 
-    sendCode();
-  }, [navigate]);
+    // Guardar sesión globalmente
+    setSessionFromOAuth({
+      uid,
+      accessToken,
+      provider: provider || "oauth",
+      email: email || null,
+      name: name || null,
+    });
 
-  return <p>{loading ? "Procesando autenticación..." : "Redirigiendo..."}</p>;
+    navigate("/dashboard");
+  }, [navigate, setSessionFromOAuth]);
+
+  return (
+    <div style={{ textAlign: "center", marginTop: "2rem" }}>
+      Procesando autenticación... (redirigiendo)
+    </div>
+  );
 }

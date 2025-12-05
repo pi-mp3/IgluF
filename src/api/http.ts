@@ -7,10 +7,13 @@ import axios from 'axios';
  * Base URL: http://localhost:5000/api
  * Default headers: 'Content-Type': 'application/json'
  */
+
+
 export const http = axios.create({
-  baseURL: 'http://localhost:5000/api',
-  headers: { 'Content-Type': 'application/json' },
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  headers: { "Content-Type": "application/json" },
 });
+
 
 /**
  * AuthAPI object with authentication-related utilities.
