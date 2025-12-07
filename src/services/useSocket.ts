@@ -1,5 +1,5 @@
 /**
- * sockets.ts
+ * useSocket.ts
  * 
  * Socket.IO client singleton service for Chat and Audio/Video.
  * 
@@ -8,11 +8,12 @@
  *  - Reconnection with retries
  *  - Supports both development (localhost) and production (Render/Vercel) URLs
  *  - Separate instances for chat and audio/video
+ *  - Alias `getSocket` points to chat socket for backward compatibility
  * 
  * Usage:
- *  import { getChatSocket, getAudioSocket } from './services/sockets';
+ *  import { getSocket, getChatSocket, getAudioSocket } from './services/useSocket';
  * 
- *  const chat = await getChatSocket();
+ *  const chat = await getSocket(); // same as getChatSocket()
  *  chat.emit('joinRoom', { roomId: 'ABC123' });
  * 
  *  const audio = await getAudioSocket();
@@ -128,3 +129,9 @@ export async function getAudioSocket(): Promise<Socket> {
   audioSocket = await createSocket(url);
   return audioSocket;
 }
+
+/**
+ * Alias for backward compatibility
+ * `getSocket()` points to chat socket
+ */
+export const getSocket = getChatSocket;
