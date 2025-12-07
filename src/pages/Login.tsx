@@ -14,7 +14,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { loginUser } from "./api"; // ✅ Backend API function
+import { loginUser } from "./api";
+import { useTranslation } from "react-i18next";
 
 // ==================== Icons ====================
 const GoogleIcon: React.FC = () => (
@@ -40,7 +41,8 @@ const GitHubIcon: React.FC = () => (
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, setSessionFromLogin } = useAuth();
+  const { user, loginFirebase } = useAuth();
+  const { t } = useTranslation();
 
   const [form, setForm] = useState({ email: "", password: "", remember: true });
   const [loading, setLoading] = useState(false);
@@ -76,20 +78,45 @@ export default function Login(): JSX.Element {
     setLoginError(null);
 
     try {
-      const data: { token: string; user: { uid: string; email?: string; name?: string } } =
-        await loginUser({ email: form.email, password: form.password });
+      const data = await loginUser({
+        email: form.email,
+        password: form.password,
+      });
+
+      // Validar que la respuesta tenga la estructura correcta
+      if (!data || !data.user || !data.user.uid) {
+        throw new Error("Respuesta del servidor inválida");
+      }
+
+      // Usar AuthContext para guardar la sesión correctamente
+      loginFirebase(
+        {
+          uid: data.user.uid,
+          email: data.user.email,
+          name: data.user.name,
+          provider: 'email'
+        },
+        data.token
+      );
 
       setSessionFromLogin({ user: data.user, token: data.token });
       navigate("/dashboard");
     } catch (err: any) {
-      setLoginError(err.response?.data?.message || "Error de inicio de sesión");
+      console.error("Login error completo:", err);
+      setLoginError(err.message || "Error de inicio de sesión");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => (window.location.href = `${BACKEND}/api/auth/google`);
-  const handleGitHubLogin = () => (window.location.href = `${BACKEND}/api/auth/github`);
+  // ==================== OAuth (corregido) ====================
+  const handleGoogleLogin = () => {
+    window.location.href = `${BACKEND}/api/auth/google`;
+  };
+
+  const handleGitHubLogin = () => {
+    window.location.href = `${BACKEND}/api/auth/github`;
+  };
 
   // ==================== JSX ====================
   return (
@@ -162,13 +189,15 @@ export default function Login(): JSX.Element {
 
           {/* Submit */}
           <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? "Iniciando..." : "Iniciar sesión"}
+            {loading ? "Iniciando..." : t("login.loginButton")}
           </button>
 
           {/* Divider */}
           <div className="auth-divider">
             <span className="auth-divider-line" />
-            <span className="auth-divider-text">o continuar con</span>
+            <span className="auth-divider-text">
+              {t("login.orContinueWith")}
+            </span>
             <span className="auth-divider-line" />
           </div>
 

@@ -11,6 +11,8 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 interface Meeting {
   id: string;
@@ -29,7 +31,9 @@ const mockMeetings: Meeting[] = [
 
 export default function DashboardPage() {
   const [joinId, setJoinId] = useState(""); // ID de reunión para unirse
+  const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   /**
    * Genera un ID aleatorio de 7 caracteres para nuevas reuniones
@@ -39,10 +43,20 @@ export default function DashboardPage() {
   };
 
   /**
-   * Crea una reunión nueva y redirige a la página de la reunión
+   * Crea una reunión nueva y redirige directamente (se creará en el backend al unirse)
    */
   const handleCreateMeeting = (): void => {
+    if (isCreating) return;
+    
+    if (!user) {
+      alert("Debes estar autenticado para crear una reunión");
+      return;
+    }
+    
     const id = generateRandomId();
+    console.log("✅ Creando reunión:", id);
+    
+    // Navegar directamente - la reunión se creará automáticamente cuando te unas
     navigate(`/meeting/${id}`);
   };
 
@@ -100,6 +114,7 @@ export default function DashboardPage() {
               type="button"
               className="dashboard-primary-btn"
               onClick={handleCreateMeeting}
+              disabled={!user}
             >
               Crear Nueva Reunión
             </button>
