@@ -1239,6 +1239,43 @@ body {
   justify-content: center;
   font-size: 0.9rem;
   cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 0.5rem;
+  padding: 0 0.5rem;
+}
+
+.meeting-control-btn:hover:not(:disabled) {
+  background: #1e293b;
+  transform: scale(1.05);
+}
+
+.meeting-control-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.meeting-control-btn.muted {
+  background: #dc2626;
+  animation: pulse 2s infinite;
+}
+
+.meeting-control-btn.connected {
+  background: #16a34a;
+}
+
+.meeting-control-btn.disconnected {
+  background: #dc2626;
+  animation: blink 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
 }
 
 .meeting-control-ia {
@@ -1248,6 +1285,10 @@ body {
 
 .meeting-control-hangup {
   background: #ef4444;
+}
+
+.meeting-control-hangup:hover {
+  background: #dc2626;
 }
 
 /* Responsive meeting */

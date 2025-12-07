@@ -12,7 +12,7 @@ export interface User {
   age?: number;
   email: string;
   password?: string;
-  authProvider: 'manual' | 'google' | 'facebook';
+  authProvider: 'manual' | 'google' | 'Github';
   oauthId?: string;
   createdAt: string | Date; // Firestore sends timestamp as string
   uid: string;

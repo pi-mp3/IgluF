@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { auth, User as FirebaseUser } from "../firebaseConfig";
-import { onAuthStateChanged, signOut } from "firebase/auth";
 
-// ====================== Types ======================
+/* ============================================================
+ * TYPES
+ * ============================================================ */
 
 export interface User {
   uid: string;
@@ -14,19 +14,32 @@ interface AuthContextType {
   loading: boolean;
   loginFirebase: (user: FirebaseUser) => void;
   logout: () => Promise<void>;
+  setSessionFromOAuth: (data: {
+    uid: string;
+    token: string;
+    provider?: string;
+    email?: string | null;
+    name?: string | null;
+  }) => void;
+  setSessionFromLogin: (data: { user: User; token: string }) => void;
+  logout: () => void;
 }
 
-// ==================== Create Context ====================
+/* ============================================================
+ * CONTEXT
+ * ============================================================ */
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ==================== Provider Component ====================
+/* ============================================================
+ * PROVIDER
+ * ============================================================ */
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ==================== Session Persistence ====================
+  /** Load session from localStorage safely */
   useEffect(() => {
     // Leer user desde localStorage al iniciar
     const stored = localStorage.getItem("user");
@@ -41,7 +54,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         localStorage.removeItem("user");
       }
+    } catch (err) {
+      console.error("Failed to load user from localStorage:", err);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+    } finally {
       setLoading(false);
+    }
+  }, []);
+
+  /** Hydrate session from OAuth login */
+  const setSessionFromOAuth = ({
+    uid,
+    token,
+    provider = "oauth",
+    email = null,
+    name = null,
+  }: {
+    uid: string;
+    token: string;
+    provider?: string;
+    email?: string | null;
+    name?: string | null;
+  }) => {
+    const newUser: User = { uid, provider, email, name };
+
+    setUser(prev => {
+      if (
+        prev?.uid === newUser.uid &&
+        prev?.email === newUser.email &&
+        prev?.name === newUser.name &&
+        prev?.provider === newUser.provider
+      ) {
+        return prev; // evitar re-render innecesario
+      }
+      return newUser;
     });
 
     return () => unsubscribe();
@@ -59,12 +106,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     window.location.href = "/login";
   };
 
   // ==================== Return Context ====================
   return (
-    <AuthContext.Provider value={{ user, loading, loginFirebase, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        setSessionFromOAuth,
+        setSessionFromLogin,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
