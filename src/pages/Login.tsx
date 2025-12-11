@@ -186,11 +186,11 @@ export default function Login(): JSX.Element {
   // OAuth redirects (simple redirect to backend)
   const handleGoogleLogin = () => {
     // backend route expected to start oauth dance and redirect back to frontend
-    window.location.href = `${BACKEND}/auth/google`;
+    window.location.href = `${BACKEND}/api/auth/google`;
   };
 
   const handleGitHubLogin = () => {
-    window.location.href = `${BACKEND}/auth/github`;
+    window.location.href = `${BACKEND}/api/auth/github`;
   };
 
   return (

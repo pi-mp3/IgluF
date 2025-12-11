@@ -100,7 +100,7 @@ export const loginGoogle = () => {
   const BACKEND =
     (import.meta.env.VITE_BACKEND_URL as string) || "http://localhost:5000";
 
-  window.location.href = `${BACKEND}/auth/google`;
+  window.location.href = `${BACKEND}/api/auth/google`;
 };
 
 /**
@@ -111,7 +111,7 @@ export const loginGitHub = () => {
   const BACKEND =
     (import.meta.env.VITE_BACKEND_URL as string) || "http://localhost:5000";
 
-  window.location.href = `${BACKEND}/auth/github`;
+  window.location.href = `${BACKEND}/api/auth/github`;
 };
 
 /**
