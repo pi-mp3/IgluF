@@ -32,7 +32,7 @@ const GitHubIcon: React.FC = () => (
     <path
       fill="#181717"
       fillRule="evenodd"
-      d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38v-1.33C3.79 14.37 3.32 12.8 3.32 12.8c-.36-.92-.88-1.16-.88-1.16-.72-.49.06-.48.06-.48.8.06 1.22.82 1.22.82.71 1.21 1.87.86 2.33.66.07-.52.28-.86.51-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.56 7.56 0 012 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0016 8c0-4.42-3.58-8-8-8z"
+      d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38v-1.33C3.79 14.37 3.32 12.8 3.32 12.8c-.36-.92-.88-1.16-.88-1.16-.72-.49.06-.48.06-.48.8.06 1.22.82 1.22.82.71 1.21 1.87.86 2.33.66.07-.52.28-.86.51-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.56 7.56 0 012 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3–07. ."
     />
   </svg>
 );
@@ -53,12 +53,10 @@ export default function Login(): JSX.Element {
   const state = location.state as { deleted?: boolean } | null;
   const accountDeleted = state?.deleted ?? false;
 
-  // Auto redirect if already logged in
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
 
-  // Auto dismiss error
   useEffect(() => {
     if (loginError) {
       const timer = setTimeout(() => setLoginError(null), 7000);
@@ -66,10 +64,9 @@ export default function Login(): JSX.Element {
     }
   }, [loginError]);
 
-  // ==================== Handlers ====================
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -83,18 +80,15 @@ export default function Login(): JSX.Element {
         password: form.password,
       });
 
-      // Validar que la respuesta tenga la estructura correcta
-      if (!data || !data.user || !data.user.uid) {
+      if (!data || !data.user || !data.user.uid)
         throw new Error("Respuesta del servidor inválida");
-      }
 
-      // Usar AuthContext para guardar la sesión correctamente
       loginFirebase(
         {
           uid: data.user.uid,
           email: data.user.email,
           name: data.user.name,
-          provider: 'email'
+          provider: "email",
         },
         data.token
       );
@@ -109,7 +103,6 @@ export default function Login(): JSX.Element {
     }
   };
 
-  // ==================== OAuth (corregido) ====================
   const handleGoogleLogin = () => {
     window.location.href = `${BACKEND}/api/auth/google`;
   };
@@ -118,18 +111,17 @@ export default function Login(): JSX.Element {
     window.location.href = `${BACKEND}/api/auth/github`;
   };
 
-  // ==================== JSX ====================
   return (
     <div className="auth-page auth-page--compact">
       <div className="auth-wrapper auth-wrapper--compact">
         <h1 className="auth-title">Bienvenido de nuevo</h1>
         <p className="auth-subtitle">Inicia sesión para continuar</p>
 
-        {accountDeleted && <div className="login-success-banner">✔ Tu cuenta fue eliminada correctamente.</div>}
+        {accountDeleted && (
+          <div className="login-success-banner">✔ Tu cuenta fue eliminada correctamente.</div>
+        )}
         {loginError && (
-          <div className="auth-error-banner">
-            ⚠️ {loginError}
-          </div>
+          <div className="auth-error-banner">⚠️ {loginError}</div>
         )}
 
         <form className="auth-card" onSubmit={handleSubmit}>
@@ -176,13 +168,22 @@ export default function Login(): JSX.Element {
             </div>
           </label>
 
-          {/* Remember & Forgot */}
+          {/* Remember / Forgot */}
           <div className="auth-row">
             <label className="auth-remember">
-              <input type="checkbox" name="remember" checked={form.remember} onChange={handleChange} />
+              <input
+                type="checkbox"
+                name="remember"
+                checked={form.remember}
+                onChange={handleChange}
+              />
               Recordarme
             </label>
-            <button type="button" className="auth-link" onClick={() => navigate("/forgot-password")}>
+            <button
+              type="button"
+              className="auth-link"
+              onClick={() => navigate("/forgot-password")}
+            >
               ¿Olvidaste tu contraseña?
             </button>
           </div>
@@ -195,18 +196,24 @@ export default function Login(): JSX.Element {
           {/* Divider */}
           <div className="auth-divider">
             <span className="auth-divider-line" />
-            <span className="auth-divider-text">
-              {t("login.orContinueWith")}
-            </span>
+            <span className="auth-divider-text">{t("login.orContinueWith")}</span>
             <span className="auth-divider-line" />
           </div>
 
-          {/* OAuth buttons */}
+          {/* OAuth */}
           <div className="auth-social-row">
-            <button type="button" className="auth-social auth-social-google" onClick={handleGoogleLogin}>
+            <button
+              type="button"
+              className="auth-social auth-social-google"
+              onClick={handleGoogleLogin}
+            >
               <GoogleIcon /> <span>Google</span>
             </button>
-            <button type="button" className="auth-social auth-social-github" onClick={handleGitHubLogin}>
+            <button
+              type="button"
+              className="auth-social auth-social-github"
+              onClick={handleGitHubLogin}
+            >
               <GitHubIcon /> <span>GitHub</span>
             </button>
           </div>
@@ -214,7 +221,11 @@ export default function Login(): JSX.Element {
           {/* Register link */}
           <p className="auth-bottom-text">
             ¿Aún no tienes cuenta?{" "}
-            <button type="button" className="auth-link" onClick={() => navigate("/register")}>
+            <button
+              type="button"
+              className="auth-link"
+              onClick={() => navigate("/register")}
+            >
               Crear una cuenta
             </button>
           </p>
