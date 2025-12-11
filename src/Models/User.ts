@@ -6,14 +6,12 @@
  */
 
 export interface User {
-  id?: string;
-  name: string;
-  lastName?: string;
-  age?: number;
-  email: string;
-  password?: string;
-  authProvider: 'manual' | 'google' | 'Github';
-  oauthId?: string;
-  createdAt: string | Date; // Firestore sends timestamp as string
   uid: string;
+  email?: string | null;
+  name?: string | null;
+  lastName?: string | null;
+  age?: number | null;
+  provider?: 'manual' | 'google' | 'github';
+  photoURL?: string | null;
 }
+

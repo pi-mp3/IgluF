@@ -11,7 +11,17 @@
  */
 
 import { http } from "../api/http";
-import { User } from "../models/User";
+import { User } from "../Models/User";
+
+/* ============================================================
+ * INTERNAL HELPER — Extract backend error
+ * ============================================================ */
+
+function extractError(err: any) {
+  if (err?.response?.data?.message) return err.response.data.message;
+  if (err?.response?.data?.error) return err.response.data.error;
+  return err.message || "Error inesperado del servidor";
+}
 
 /* ============================================================
  * INTERFACES
@@ -53,9 +63,7 @@ export const registerUser = async (userData: RegisterData) => {
     const res = await http.post("/auth/register", userData);
     return res.data;
   } catch (err: any) {
-    throw new Error(
-      err.message || "Error registrando el usuario"
-    );
+    throw new Error(extractError(err));
   }
 };
 
@@ -66,11 +74,14 @@ export const registerUser = async (userData: RegisterData) => {
 export const loginUser = async (credentials: LoginData) => {
   try {
     const res = await http.post("/auth/login", credentials);
+
+    if (!res.data || !res.data.user) {
+      throw new Error("Respuesta del servidor inválida");
+    }
+
     return res.data;
   } catch (err: any) {
-    throw new Error(
-      err.message || "Error iniciando sesión"
-    );
+    throw new Error(extractError(err));
   }
 };
 
@@ -105,9 +116,7 @@ export const logoutUser = async () => {
     const res = await http.post("/auth/logout");
     return res.data;
   } catch (err: any) {
-    throw new Error(
-      err.message || "Error cerrando sesión"
-    );
+    throw new Error(extractError(err));
   }
 };
 
@@ -124,9 +133,7 @@ export const recoverPassword = async (email: string) => {
     const res = await http.post("/recover/user/send-reset-email", { email });
     return res.data;
   } catch (err: any) {
-    throw new Error(
-      err.message || "Error enviando correo de recuperación"
-    );
+    throw new Error(extractError(err));
   }
 };
 
@@ -148,9 +155,7 @@ export const resetPassword = async (
 
     return res.data;
   } catch (err: any) {
-    throw new Error(
-      err.message || "Error actualizando la contraseña"
-    );
+    throw new Error(extractError(err));
   }
 };
 
@@ -167,9 +172,7 @@ export const updateUser = async (id: string, data: EditUserData) => {
     const res = await http.put(`/user/${id}`, data);
     return res.data;
   } catch (err: any) {
-    throw new Error(
-      err.message || "Error actualizando usuario"
-    );
+    throw new Error(extractError(err));
   }
 };
 
@@ -182,21 +185,34 @@ export const deleteUser = async (id: string) => {
     const res = await http.delete(`/user/${id}`);
     return res.data;
   } catch (err: any) {
-    throw new Error(
-      err.message || "Error eliminando usuario"
-    );
+    throw new Error(extractError(err));
   }
 };
 
 /**
- * Get a user by UID
+ * Get user by ID
  * Backend: GET /api/user/:id
  */
-export const getUser = async (id: string): Promise<User | null> => {
+export const getUserById = async (id: string): Promise<User> => {
   try {
     const res = await http.get(`/user/${id}`);
-    return res.data as User;
-  } catch {
-    return null;
+    return res.data.user;
+  } catch (err: any) {
+    throw new Error(extractError(err));
+  }
+};
+
+/* ============================================================
+ * GET LOGGED USER (TOKEN)
+ * NEW — REQUIRED BY Profile.tsx
+ * Backend: GET /api/auth/me
+ * ============================================================ */
+
+export const getUser = async (): Promise<User> => {
+  try {
+    const res = await http.get("/auth/me"); // token automatically included by http interceptor
+    return res.data.user;
+  } catch (err: any) {
+    throw new Error(extractError(err));
   }
 };
