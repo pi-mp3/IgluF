@@ -17,6 +17,10 @@ import { User } from "../Models/User";
  * INTERNAL HELPER — Extract backend error
  * ============================================================ */
 
+/**
+ * Extracts the error message from a backend response.
+ * Falls back to a default message in Spanish.
+ */
 function extractError(err: any) {
   if (err?.response?.data?.message) return err.response.data.message;
   if (err?.response?.data?.error) return err.response.data.error;
@@ -70,15 +74,18 @@ export const registerUser = async (userData: RegisterData) => {
 /**
  * Login using email/password
  * Backend: POST /api/auth/login
+ * 
+ * Returns the token and user data directly from backend.
  */
 export const loginUser = async (credentials: LoginData) => {
   try {
     const res = await http.post("/auth/login", credentials);
 
-    if (!res.data || !res.data.user) {
+    if (!res.data || !res.data.token) {
       throw new Error("Respuesta del servidor inválida");
     }
 
+    // Return everything the backend sends (token + user fields)
     return res.data;
   } catch (err: any) {
     throw new Error(extractError(err));
@@ -196,7 +203,7 @@ export const deleteUser = async (id: string) => {
 export const getUserById = async (id: string): Promise<User> => {
   try {
     const res = await http.get(`/user/${id}`);
-    return res.data.user;
+    return res.data; // Devuelve directamente los campos que envía tu backend
   } catch (err: any) {
     throw new Error(extractError(err));
   }
@@ -211,7 +218,7 @@ export const getUserById = async (id: string): Promise<User> => {
 export const getUser = async (): Promise<User> => {
   try {
     const res = await http.get("/auth/me"); // token automatically included by http interceptor
-    return res.data.user;
+    return res.data; // Devuelve directamente los campos que envía tu backend
   } catch (err: any) {
     throw new Error(extractError(err));
   }
