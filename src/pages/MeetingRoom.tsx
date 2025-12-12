@@ -1,383 +1,429 @@
 /**
- * MeetingRoom Component
- * Main meeting interface with real-time chat, audio/video streaming
- * Handles Socket.IO connection, participant management, Web Audio API and WebRTC
+ * MeetingRoom Component - Copied from working EJEMPLO
  */
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getSocket } from "../services/useSocket";
+import SimplePeer from "simple-peer";
+import { getChatSocket } from "../services/useSocket";
 import { useAuth } from "../context/AuthContext";
+import "./MeetingRoom.css";
 
-/** Chat message structure */
+interface Peer {
+  peerId: string;
+  peer: SimplePeer.Instance;
+  stream?: MediaStream;
+}
+
 interface ChatMessage {
   userId: string;
   text: string;
   timestamp: number;
 }
 
-/** Participant metadata */
-interface Participant {
-  uid: string;
-  name?: string;
-}
-
-/**
- * MeetingRoom component
- * Provides real-time chat, audio/video streaming, participant list
- * Automatically connects to Socket.IO server and initializes WebRTC
- */
 export default function MeetingRoom() {
   const { id: meetingId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  // State
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+  const [peers, setPeers] = useState<Peer[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isMuted, setIsMuted] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(true);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isSharingScreen, setIsSharingScreen] = useState(false);
 
+  // Refs
   const socketRef = useRef<any>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const localVideoRef = useRef<HTMLVideoElement | null>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
-  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const peersRef = useRef<Peer[]>([]);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const screenVideoRef = useRef<HTMLVideoElement>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
+  const hasConnected = useRef(false);
 
-  // ICE servers configuration
-  const iceServers = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
-
-  // Connect to socket and join meeting
+  // ========== INITIALIZATION ==========
   useEffect(() => {
-    if (!meetingId || !user) return;
+    if (!meetingId || !user || hasConnected.current) {
+      if (!user) navigate("/login");
+      return;
+    }
 
-    async function connect() {
-      setIsConnecting(true);
-      setConnectionError(null);
+    hasConnected.current = true;
 
+    async function init() {
       try {
-        const socket = await getSocket();
+        // Get local media
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: true, 
+          audio: true 
+        });
+        
+        setLocalStream(stream);
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
+
+        // Connect to socket
+        const socket = await getChatSocket();
         socketRef.current = socket;
 
-        // Clean previous listeners
-        socket.off("meeting:participants");
-        socket.off("userJoined");
-        socket.off("userLeft");
-        socket.off("receiveMessage");
-        socket.off("audio:stream");
-        socket.off("video-offer");
-        socket.off("video-answer");
-        socket.off("ice-candidate");
-        socket.off("meeting:error");
+        // Join meeting
+        socket.emit("joinMeeting", { meetingId, userName: user.name || user.email });
 
-        // Initial participants list
-        socket.on("meeting:participants", (list: Participant[]) => {
-          setParticipants(list);
+        // ========== SOCKET LISTENERS ==========
+        
+        // Introduction - receive list of existing socket IDs (don't create peers - they will)
+        socket.on("meeting:participants", (otherSocketIds: string[]) => {
+          console.log('Introduction received. Existing users:', otherSocketIds);
+          // Don't create peers here - existing users will create peers to us
         });
 
-        // Participant joined
-        socket.on("userJoined", ({ userId, userName }: { userId: string; userName?: string }) => {
-          setParticipants((prev) => {
-            if (prev.some((p) => p.uid === userId)) return prev;
-            return [...prev, { uid: userId, name: userName }];
-          });
-        });
-
-        // Participant left
-        socket.on("userLeft", ({ userId }: { userId: string }) => {
-          setParticipants((prev) => prev.filter((p) => p.uid !== userId));
-        });
-
-        // Receive chat messages
-        socket.on("receiveMessage", (msg: ChatMessage) => {
-          setMessages((prev) => [...prev, msg]);
-        });
-
-        // Audio stream from others
-        socket.on("audio:stream", async ({ audioData }: { audioData: number[] }) => {
-          await playReceivedAudio(audioData);
-        });
-
-        // WebRTC video signaling
-        socket.on("video-offer", async (data: any) => {
-          await handleVideoOffer(data);
-        });
-        socket.on("video-answer", async (data: any) => {
-          await handleVideoAnswer(data);
-        });
-        socket.on("ice-candidate", async (data: any) => {
-          if (peerConnectionRef.current) {
-            try {
-              await peerConnectionRef.current.addIceCandidate(data.candidate);
-            } catch (err) {
-              console.error("❌ ICE candidate error:", err);
+        // New user joined - ONLY existing users create peer to new user
+        socket.on("userJoined", ({ socketId }: any) => {
+          console.log('New user connected:', socketId, 'My ID:', socket.id);
+          // Only create peer if it's NOT me and doesn't already exist
+          if (socketId && socketId !== socket.id) {
+            const existingPeer = peersRef.current.find((p) => p.peerId === socketId);
+            if (!existingPeer) {
+              console.log('Creating peer for new user:', socketId);
+              createPeer(socketId, socket.id!, stream, socket);
+            } else {
+              console.log('Peer already exists for:', socketId);
             }
           }
         });
 
-        // Error handling
-        socket.on("meeting:error", (err: any) => {
-          console.error("⚠️ Meeting error:", err);
-          alert(err.message || "Error al unirse a la reunión");
+        // Signal handling
+        socket.on("signal", (to: string, from: string, data: any) => {
+          console.log('Received signal from:', from, 'To:', to, 'Type:', data.type);
+          
+          // If signal is directed to my screen ID, create a separate peer for screen
+          if (to.endsWith('-screen') && to.startsWith(socket.id || '')) {
+            const screenPeerId = `${from}-to-my-screen`;
+            const existingScreenPeer = peersRef.current.find((p) => p.peerId === screenPeerId);
+            
+            if (existingScreenPeer && !existingScreenPeer.peer.destroyed) {
+              console.log('Signaling existing screen peer:', screenPeerId);
+              existingScreenPeer.peer.signal(data);
+            } else {
+              console.log('Creating screen peer:', screenPeerId, 'ReplyFrom:', to, 'ReplyTo:', from);
+              // Use screenStreamRef if available, otherwise fallback to camera stream
+              const streamToUse = screenStreamRef.current || stream;
+              console.log('Using stream for screen peer:', screenStreamRef.current ? 'screenStream' : 'camera stream');
+              // Reply FROM my screen ID TO the sender's peer
+              addPeer(data, screenPeerId, streamToUse, socket, to, from);
+            }
+            return;
+          }
+          
+          // Normal camera peer handling
+          const peer = peersRef.current.find((p) => p.peerId === from);
+          if (peer) {
+            // Only signal if peer is not destroyed
+            if (!peer.peer.destroyed) {
+              peer.peer.signal(data);
+            }
+          } else {
+            console.log('Creating new peer for signal from:', from);
+            addPeer(data, from, stream, socket);
+          }
         });
 
-        // Join meeting after listeners
-        socket.emit("joinMeeting", { meetingId, userName: user.name || user.email });
+        // User disconnected
+        socket.on("userLeft", ({ socketId }: any) => {
+          console.log('User disconnected:', socketId);
+          const peerObj = peersRef.current.find((p) => p.peerId === socketId);
+          if (peerObj) {
+            peerObj.peer.destroy();
+          }
+          peersRef.current = peersRef.current.filter((p) => p.peerId !== socketId);
+          setPeers([...peersRef.current]);
+        });
 
-        setIsConnected(true);
-        setIsConnecting(false);
-        console.log("✅ Conectado exitosamente a reunión:", meetingId);
+        // Screen share started
+        socket.on("startScreenShare", ({ socketId }: any) => {
+          console.log('User started screen sharing. Base socketId:', socketId);
+          // Create a peer to receive their screen with -screen suffix
+          const screenPeerId = `${socketId}-screen`;
+          const existingPeer = peersRef.current.find((p) => p.peerId === screenPeerId);
+          if (!existingPeer) {
+            console.log('Creating peer to receive screen from:', screenPeerId);
+            createPeer(screenPeerId, socket.id!, stream, socket);
+          }
+        });
+
+        // Screen share stopped
+        socket.on("stopScreenShare", ({ socketId }: any) => {
+          console.log('User stopped screen sharing:', socketId);
+          const baseId = socketId.replace('-screen', '');
+          const screenPeers = peersRef.current.filter((p) => p.peerId === `${baseId}-screen`);
+          screenPeers.forEach((peerObj) => peerObj.peer.destroy());
+          peersRef.current = peersRef.current.filter((p) => p.peerId !== `${baseId}-screen`);
+          setPeers([...peersRef.current]);
+        });
+
+        // Chat messages
+        socket.on("receiveMessage", (msg: ChatMessage) => {
+          setMessages(prev => [...prev, msg]);
+        });
+
       } catch (err: any) {
-        console.error("❌ Error inicializando MeetingRoom:", err);
-        const errorMsg = err.message || "Error desconocido";
-        setConnectionError(errorMsg);
-        setIsConnecting(false);
-
-        if (errorMsg.includes("No hay sesión") || errorMsg.includes("Token") || errorMsg.includes("autenticado")) {
-          setTimeout(() => navigate("/login"), 3000);
-        }
+        console.error("❌ Init error:", err);
+        alert("No se pudo acceder a cámara/micrófono");
       }
     }
 
-    connect();
+    init();
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.emit("leaveMeeting", { meetingId });
-        socketRef.current.off("meeting:participants");
-        socketRef.current.off("userJoined");
-        socketRef.current.off("userLeft");
-        socketRef.current.off("receiveMessage");
-        socketRef.current.off("audio:stream");
-        socketRef.current.off("video-offer");
-        socketRef.current.off("video-answer");
-        socketRef.current.off("ice-candidate");
-        socketRef.current.off("meeting:error");
-      }
-      stopAudio();
-      stopVideo();
+      cleanup();
     };
-  }, [meetingId, user]);
+  }, [meetingId, user, navigate]);
 
-  // Audio capture
-  const startAudio = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+  // Effect to connect screen stream to video element
+  useEffect(() => {
+    if (screenVideoRef.current && screenStream) {
+      screenVideoRef.current.srcObject = screenStream;
+    }
+  }, [screenStream]);
+
+  // ========== PEER FUNCTIONS ==========
+  
+  const createPeer = (userToSignal: string, callerId: string, stream: MediaStream, socket: any) => {
+    console.log('Creating peer (initiator) for:', userToSignal);
+    const peer = new SimplePeer({
+      initiator: true,
+      trickle: false,
+      stream,
+    });
+
+    peer.on('signal', (signal) => {
+      console.log('Sending signal to:', userToSignal);
+      socket.emit('signal', userToSignal, callerId, signal);
+    });
+
+    peer.on('stream', (remoteStream) => {
+      console.log('Received remote stream from:', userToSignal);
+      const peerObj = peersRef.current.find(p => p.peerId === userToSignal);
+      if (peerObj) {
+        peerObj.stream = remoteStream;
+        setPeers([...peersRef.current]);
+      }
+    });
+
+    peer.on('error', (err) => {
+      console.error('Peer error (initiator):', err);
+    });
+
+    const peerObj: Peer = { peerId: userToSignal, peer };
+    peersRef.current.push(peerObj);
+    setPeers([...peersRef.current]);
+  };
+
+  const addPeer = (incomingSignal: any, callerId: string, stream: MediaStream, socket: any, replyFromId?: string, replyToId?: string) => {
+    const fromId = replyFromId || socket.id!;
+    const toId = replyToId || callerId;
+    console.log('Adding peer (receiver) with ID:', callerId, 'Will reply from:', fromId, 'to:', toId);
+    
+    // If we're replying from a screen ID, use screenStream instead
+    const isScreenReply = fromId.endsWith('-screen');
+    const streamToSend = isScreenReply && screenStream 
+      ? screenStream
+      : stream;
+    
+    console.log('Using stream:', isScreenReply ? 'screen' : 'camera');
+    
+    const peer = new SimplePeer({
+      initiator: false,
+      trickle: false,
+      stream: streamToSend,
+    });
+
+    peer.on('signal', (signal) => {
+      console.log('Sending signal to:', toId, 'from:', fromId);
+      socket.emit('signal', toId, fromId, signal);
+    });
+
+    peer.on('stream', (remoteStream) => {
+      console.log('Received remote stream from:', callerId);
+      const peerObj = peersRef.current.find(p => p.peerId === callerId);
+      if (peerObj) {
+        peerObj.stream = remoteStream;
+        setPeers([...peersRef.current]);
+      }
+    });
+
+    peer.on('error', (err) => {
+      console.error('Peer error (receiver):', err);
+    });
+
+    peer.signal(incomingSignal);
+
+    const peerObj: Peer = { peerId: callerId, peer };
+    peersRef.current.push(peerObj);
+    setPeers([...peersRef.current]);
+  };
+
+  // ========== CONTROLS ==========
+  
+  const toggleAudio = () => {
+    if (localStream) {
+      const audioTrack = localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setIsMuted(!audioTrack.enabled);
+      }
+    }
+  };
+
+  const toggleVideo = () => {
+    if (localStream) {
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        setIsVideoOff(!videoTrack.enabled);
+      }
+    }
+  };
+
+  const toggleScreenShare = async () => {
+    if (isSharingScreen) {
+      // Detener compartir pantalla
+      screenStream?.getTracks().forEach((track) => track.stop());
+      setScreenStream(null);
+      screenStreamRef.current = null;
+      
+      // Destruir peers de pantalla compartida
+      const screenPeers = peersRef.current.filter((p) => p.peerId.includes('-screen'));
+      screenPeers.forEach((peerObj) => {
+        peerObj.peer.destroy();
       });
-      mediaStreamRef.current = stream;
-      audioContextRef.current = new AudioContext({ sampleRate: 16000 });
-
-      const source = audioContextRef.current.createMediaStreamSource(stream);
-      const processor = audioContextRef.current.createScriptProcessor(4096, 1, 1);
-
-      processor.onaudioprocess = (e) => {
-        if (isMuted) return;
-        const audioData = e.inputBuffer.getChannelData(0);
-        if (socketRef.current?.connected) {
-          socketRef.current.emit("audio:stream", {
-            meetingId,
-            audioData: Array.from(audioData),
-          });
-        }
-      };
-
-      source.connect(processor);
-      processor.connect(audioContextRef.current.destination);
-      setIsMuted(false);
-    } catch (err) {
-      console.error("❌ Error al iniciar audio:", err);
-      alert("No se pudo acceder al micrófono. Verifica los permisos.");
-    }
-  };
-
-  const stopAudio = () => {
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
-      mediaStreamRef.current = null;
-    }
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
-    }
-  };
-
-  const playReceivedAudio = async (audioData: number[]) => {
-    try {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new AudioContext({ sampleRate: 16000 });
-      }
-      const audioBuffer = audioContextRef.current.createBuffer(1, audioData.length, 16000);
-      audioBuffer.getChannelData(0).set(audioData);
-      const source = audioContextRef.current.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContextRef.current.destination);
-      source.start();
-    } catch {}
-  };
-
-  const toggleMute = () => setIsMuted(!isMuted);
-
-  // Video capture and WebRTC
-  const startVideo = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-
-      const pc = new RTCPeerConnection(iceServers);
-      peerConnectionRef.current = pc;
-
-      // Add local tracks
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
-
-      // Remote track
-      pc.ontrack = (event) => {
-        if (remoteVideoRef.current) remoteVideoRef.current.srcObject = event.streams[0];
-      };
-
-      // ICE candidate
-      pc.onicecandidate = (event) => {
-        if (event.candidate && socketRef.current) {
-          socketRef.current.emit("ice-candidate", { meetingId, candidate: event.candidate });
-        }
-      };
-
-      // Create offer
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+      peersRef.current = peersRef.current.filter((p) => !p.peerId.includes('-screen'));
+      setPeers([...peersRef.current]);
+      
+      // Notificar a otros usuarios
       if (socketRef.current) {
-        socketRef.current.emit("video-offer", { meetingId, sdp: offer });
+        socketRef.current.emit('stopScreenShare', { meetingId, userId: user?.uid });
       }
-    } catch (err) {
-      console.error("❌ Video error:", err);
-      alert("No se pudo iniciar la cámara. Verifica los permisos.");
-    }
-  };
-
-  const handleVideoOffer = async (data: any) => {
-    try {
-      const pc = new RTCPeerConnection(iceServers);
-      peerConnectionRef.current = pc;
-
-      pc.ontrack = (event) => {
-        if (remoteVideoRef.current) remoteVideoRef.current.srcObject = event.streams[0];
-      };
-
-      pc.onicecandidate = (event) => {
-        if (event.candidate && socketRef.current) {
-          socketRef.current.emit("ice-candidate", { meetingId, candidate: event.candidate });
+      
+      setIsSharingScreen(false);
+    } else {
+      // Iniciar compartir pantalla
+      try {
+        const newScreenStream = await navigator.mediaDevices.getDisplayMedia({ 
+          video: true,
+          audio: false 
+        });
+        
+        // Detener cuando el usuario pare desde el navegador
+        newScreenStream.getVideoTracks()[0].onended = () => {
+          toggleScreenShare();
+        };
+        
+        setScreenStream(newScreenStream);
+        screenStreamRef.current = newScreenStream;
+        
+        if (screenVideoRef.current) {
+          screenVideoRef.current.srcObject = newScreenStream;
         }
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
-
-      await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      if (socketRef.current) {
-        socketRef.current.emit("video-answer", { meetingId, sdp: answer });
+        
+        setIsSharingScreen(true);
+        
+        // Notificar a otros usuarios - ELLOS crearán peers hacia mi socketId-screen
+        if (socketRef.current) {
+          console.log('Notifying others about screen share. My base socketId:', socketRef.current.id);
+          // Send base socketId (backend will use socket.id anyway)
+          socketRef.current.emit('startScreenShare', { meetingId, userId: user?.uid });
+        }
+      } catch (error) {
+        console.error('Error al compartir pantalla:', error);
+        alert('No se pudo compartir la pantalla');
       }
-    } catch (err) {
-      console.error("❌ Video offer handling error:", err);
     }
   };
 
-  const handleVideoAnswer = async (data: any) => {
-    try {
-      if (peerConnectionRef.current) {
-        await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.sdp));
-      }
-    } catch (err) {
-      console.error("❌ Video answer error:", err);
-    }
-  };
-
-  const stopVideo = () => {
-    if (localVideoRef.current?.srcObject) {
-      (localVideoRef.current.srcObject as MediaStream).getTracks().forEach((track) => track.stop());
-      localVideoRef.current.srcObject = null;
-    }
-    if (remoteVideoRef.current?.srcObject) {
-      (remoteVideoRef.current.srcObject as MediaStream).getTracks().forEach((track) => track.stop());
-      remoteVideoRef.current.srcObject = null;
-    }
-    if (peerConnectionRef.current) {
-      peerConnectionRef.current.close();
-      peerConnectionRef.current = null;
-    }
-  };
-
-  // Send chat
-  const handleSend = () => {
+  const sendMessage = () => {
     if (!input.trim() || !socketRef.current) return;
     socketRef.current.emit("sendMessage", { meetingId, text: input.trim() });
     setInput("");
   };
 
-  // Hangup
-  const handleHangup = () => {
-    stopAudio();
-    stopVideo();
-    if (socketRef.current) socketRef.current.emit("leaveMeeting", { meetingId });
-    navigate("/dashboard");
+  const cleanup = () => {
+    localStream?.getTracks().forEach(track => track.stop());
+    screenStream?.getTracks().forEach(track => track.stop());
+    peersRef.current.forEach(peerObj => peerObj.peer.destroy());
+    
+    if (socketRef.current) {
+      socketRef.current.emit("leaveMeeting", { meetingId });
+      socketRef.current.off("meeting:participants");
+      socketRef.current.off("userJoined");
+      socketRef.current.off("userLeft");
+      socketRef.current.off("receiveMessage");
+      socketRef.current.off("signal");
+      socketRef.current.off("startScreenShare");
+      socketRef.current.off("stopScreenShare");
+    }
   };
 
-  // Loading/error screens
-  if (isConnecting) {
-    return (
-      <div className="meeting-page" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-        <div style={{ textAlign: "center", padding: "2rem" }}>
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔄</div>
-          <h2>Conectando a la reunión...</h2>
-          <p style={{ color: "#666" }}>ID: {meetingId}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (connectionError) {
-    return (
-      <div className="meeting-page" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-        <div style={{ textAlign: "center", padding: "2rem", maxWidth: "500px" }}>
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>❌</div>
-          <h2>Error al conectar</h2>
-          <p style={{ color: "#666", marginBottom: "1.5rem" }}>{connectionError}</p>
-          <button onClick={() => navigate("/dashboard")} style={{ padding: "0.75rem 1.5rem", background: "var(--teal)", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "1rem" }}>
-            Volver al Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  // ========== RENDER ==========
+  
   return (
     <div className="meeting-page">
-      <div className="meeting-wrapper">
-        {/* Header */}
-        <header className="meeting-topbar">
-          <div className="meeting-status-dot" />
-          <span className="meeting-title">Reunión - ID: {meetingId ?? "----"}</span>
+      <div className="meeting-container">
+        <header className="meeting-header">
+          <div className="meeting-header-left">
+            <h1 className="meeting-title">Reunión {meetingId}</h1>
+            <p className="meeting-subtitle">{user?.name || user?.email}</p>
+          </div>
         </header>
 
         <div className="meeting-main">
           {/* Participants grid */}
           <section className="meeting-grid">
-            {participants.map((participant) => (
-              <article key={participant.uid} className="meeting-tile">
-                <div className="meeting-avatar-circle">
-                  <span>{(participant.name || participant.uid).slice(0, 1).toUpperCase()}</span>
+            {/* Local Video */}
+            <article className="meeting-tile meeting-tile-video">
+              <video
+                ref={localVideoRef}
+                autoPlay
+                muted
+                playsInline
+                className="meeting-video"
+              />
+              <div className="meeting-video-label">
+                Tú {isVideoOff && '(Video desactivado)'}
+              </div>
+            </article>
+
+            {/* Local Screen Share */}
+            {screenStream && (
+              <article className="meeting-tile meeting-tile-video">
+                <video
+                  ref={screenVideoRef}
+                  autoPlay
+                  muted
+                  playsInline
+                  className="meeting-video"
+                />
+                <div className="meeting-video-label" style={{backgroundColor: 'var(--teal)'}}>
+                  Tu pantalla compartida
                 </div>
-                <div className="meeting-participant-label">{participant.name || participant.uid}{participant.uid === user?.uid && " (Tú)"}</div>
               </article>
-            ))}
-            {Array.from({ length: Math.max(0, 6 - participants.length) }).map((_, idx) => (
+            )}
+
+            {/* Remote Videos */}
+            {peers
+              .filter((peerObj) => !peerObj.peerId.includes('-to-my-screen'))
+              .map((peerObj) => (
+                <RemoteVideo key={peerObj.peerId} peer={peerObj.peer} peerId={peerObj.peerId} stream={peerObj.stream} />
+              ))}
+            
+            {/* Empty placeholders */}
+            {Array.from({ length: Math.max(0, 6 - peers.filter(p => !p.peerId.includes('-to-my-screen')).length - (screenStream ? 2 : 1)) }).map((_, idx) => (
               <article key={`placeholder-${idx}`} className="meeting-tile meeting-tile-empty">
-                <div className="meeting-empty-icon">👥</div>
+                <div className="meeting-empty-icon">👤</div>
               </article>
             ))}
           </section>
@@ -386,7 +432,7 @@ export default function MeetingRoom() {
           <aside className="meeting-sidebar">
             <div className="meeting-tabs">
               <button className="meeting-tab meeting-tab--active">Chat</button>
-              <button className="meeting-tab">Participantes ({participants.length})</button>
+              <button className="meeting-tab">Participantes ({peers.filter(p => !p.peerId.includes('-screen')).length + 1})</button>
             </div>
 
             <div className="meeting-chat-list">
@@ -402,37 +448,101 @@ export default function MeetingRoom() {
             </div>
 
             <div className="meeting-chat-input-wrapper">
-              <input type="text" className="meeting-chat-input" placeholder="Escribe un mensaje..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSend()} />
-              <button className="meeting-chat-send" onClick={handleSend}>➤</button>
+              <input 
+                type="text" 
+                className="meeting-chat-input" 
+                placeholder="Escribe un mensaje..." 
+                value={input} 
+                onChange={(e) => setInput(e.target.value)} 
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()} 
+              />
+              <button className="meeting-chat-send" onClick={sendMessage}>✈️</button>
             </div>
           </aside>
-        </div>
-
-        {/* Video section */}
-        <div className="meeting-video-section">
-          <video ref={localVideoRef} autoPlay muted playsInline className="local-video" />
-          <video ref={remoteVideoRef} autoPlay playsInline className="remote-video" />
         </div>
 
         {/* Toolbar */}
         <footer className="meeting-toolbar">
           <div className="meeting-toolbar-center">
-            <button className={`meeting-control-btn ${isMuted ? "muted" : ""}`} onClick={toggleMute} title={isMuted ? "Activar micrófono" : "Silenciar micrófono"}>
-              {isMuted ? "🔇" : "🎙️"}
+            <button 
+              className={`meeting-control-btn ${isMuted ? "muted" : ""}`} 
+              onClick={toggleAudio} 
+              title={isMuted ? "Activar micrófono" : "Silenciar micrófono"}
+            >
+              {isMuted ? "🔇" : "🎤"}
             </button>
-            <button className="meeting-control-btn" onClick={mediaStreamRef.current ? stopAudio : startAudio} title={mediaStreamRef.current ? "Detener audio" : "Iniciar audio"}>
-              {mediaStreamRef.current ? "⏹️" : "▶️"}
+            
+            <button 
+              className={`meeting-control-btn ${isVideoOff ? "muted" : ""}`} 
+              onClick={toggleVideo} 
+              title={isVideoOff ? "Activar video" : "Apagar video"}
+            >
+              {isVideoOff ? "📹" : "📹"}
             </button>
-            <button className="meeting-control-btn" onClick={startVideo} title="Iniciar video">📷</button>
-            <button className="meeting-control-btn" title="Compartir pantalla">🖥️</button>
-            <button className="meeting-control-btn" title={`${participants.length} participantes`}>👥 {participants.length}</button>
-            <button className={`meeting-control-btn ${isConnected ? "connected" : "disconnected"}`} title={isConnected ? "Conectado" : "Desconectado"}>
-              {isConnected ? "🟢" : "🔴"}
+            
+            <button 
+              className={`meeting-control-btn ${isSharingScreen ? "active" : ""}`} 
+              onClick={toggleScreenShare} 
+              title={isSharingScreen ? "Detener compartir" : "Compartir pantalla"}
+            >
+              🖥️
             </button>
-            <button className="meeting-control-btn meeting-control-hangup" onClick={handleHangup} title="Salir de la reunión">✖</button>
+            
+            <button 
+              className="meeting-control-btn" 
+              title={`${peers.filter(p => !p.peerId.includes('-screen')).length + 1} participantes`}
+            >
+              👤 {peers.filter(p => !p.peerId.includes('-screen')).length + 1}
+            </button>
+            
+            <button 
+              className="meeting-control-btn meeting-control-hangup" 
+              onClick={() => {
+                cleanup();
+                navigate("/dashboard");
+              }} 
+              title="Salir de la reunión"
+            >
+              ☎️
+            </button>
           </div>
         </footer>
       </div>
     </div>
   );
 }
+
+// ========== REMOTE VIDEO COMPONENT ==========
+
+interface RemoteVideoProps {
+  peer: SimplePeer.Instance;
+  peerId: string;
+  stream?: MediaStream;
+}
+
+const RemoteVideo: React.FC<RemoteVideoProps> = ({ peer, peerId, stream }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const isScreenShare = peerId.endsWith('-screen');
+  const displayId = isScreenShare ? peerId.replace('-screen', '').substring(0, 6) : peerId.substring(0, 6);
+  const label = isScreenShare ? `Usuario ${displayId} - Pantalla Compartida` : `Usuario ${displayId}`;
+
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
+  return (
+    <article className="meeting-tile meeting-tile-video">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        className="meeting-video"
+      />
+      <div className="meeting-video-label" style={isScreenShare ? {backgroundColor: 'var(--teal)'} : {}}>
+        {label}
+      </div>
+    </article>
+  );
+};
