@@ -438,6 +438,5 @@
 }
 .meeting-sidebar{
   align-self: start;
-  min-height: 0;     /* clave para que el scroll sea interno */
-  max-height: 100%;  /* opcional, mantiene límites del grid */
+  height: 100%;
 }
