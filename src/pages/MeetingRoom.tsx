@@ -35,6 +35,8 @@ export default function MeetingRoom() {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isSharingScreen, setIsSharingScreen] = useState(false);
+  const [fitContain, setFitContain] = useState(false);
+
 
   // Refs
   const socketRef = useRef<any>(null);
@@ -384,7 +386,7 @@ export default function MeetingRoom() {
           {/* Participants grid */}
           <section className="meeting-grid">
             {/* Local Video */}
-            <article className="meeting-tile meeting-tile-video">
+            <article className={`meeting-tile meeting-tile-video local ${fitContain ? "fit-contain" : ""}`}>
               <video
                 ref={localVideoRef}
                 autoPlay
@@ -472,6 +474,15 @@ export default function MeetingRoom() {
               {isMuted ? "🔇" : "🎤"}
             </button>
             
+            <button
+              className="meeting-control-btn"
+              onClick={() => setFitContain(v => !v)}
+              title={fitContain ? "Llenar (recorta)" : "Ajustar (no recorta)"}
+            >
+              {fitContain ? "⤢" : "⤡"}
+            </button>
+
+
             <button 
               className={`meeting-control-btn ${isVideoOff ? "muted" : ""}`} 
               onClick={toggleVideo} 
