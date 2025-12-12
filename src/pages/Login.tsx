@@ -1,30 +1,27 @@
 /**
  * Login.tsx
  *
- * Login page for the Iglu application.
+ * Página de inicio de sesión de la aplicación Iglú.
  *
- * Supports:
- *  - Email/password login (backend + JWT)
- *  - Google OAuth (redirect to backend)
- *  - GitHub OAuth (redirect to backend)
+ * Soporta:
+ *  - Login con correo/contraseña (backend + JWT)
+ *  - Login con Google OAuth
+ *  - Login con GitHub OAuth
  *
+ * User-facing text: Español
  * Developer docs: English
- * User-facing text: Spanish
  *
- * Notes:
- *  - This component accepts backend responses in two shapes:
- *      1) { user: { uid, email, name, ... }, token }
- *      2) { uid, id, email, name, lastName, age, provider, token, ... }
- *  - It will normalize the response into a single `userForSession` object
- *    and then call the AuthContext session setter.
+ * Notas:
+ *  - Normaliza las respuestas del backend a un solo objeto `userForSession`
+ *  - El callback OAuth debe redirigir a `/oauth/callback` con token y provider
  */
 
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { loginUser } from "./api";
 
-// ==================== Icons ====================
+/* ==================== ICONOS ==================== */
 const GoogleIcon: React.FC = () => (
   <svg width="18" height="18" viewBox="0 0 533.5 544.3" aria-hidden>
     <path fill="#4285F4" d="M533.5 278.4c0-17.4-1.5-34.1-4.3-50.2H272v95h147.5c-6.4 34.4-25 63.5-53.3 83.2l86.1 67.1c50.3-46.4 80.2-114.8 80.2-195.1z"/>
@@ -44,11 +41,10 @@ const GitHubIcon: React.FC = () => (
   </svg>
 );
 
-// ==================== Component ====================
+/* ==================== COMPONENTE ==================== */
 export default function Login(): JSX.Element {
   const navigate = useNavigate();
-  const location = useLocation();
-  const auth = useAuth(); // context may contain setSessionFromLogin or loginFirebase
+  const auth = useAuth();
   const { user } = auth as any;
 
   const BACKEND = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
@@ -58,12 +54,12 @@ export default function Login(): JSX.Element {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  // If already logged in, redirect
+  /** Redirige al dashboard si ya está logueado */
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
 
-  // Auto-clear errors
+  /** Limpia errores automáticamente después de 7s */
   useEffect(() => {
     if (loginError) {
       const timer = setTimeout(() => setLoginError(null), 7000);
@@ -71,107 +67,44 @@ export default function Login(): JSX.Element {
     }
   }, [loginError]);
 
-  // Handle form inputs
+  /** Actualiza el formulario */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
-  // Normalize backend response to a single user object
+  /** Normaliza respuesta del backend */
   const normalizeBackendUser = (data: any) => {
-    // data may be { user: {...}, token } OR flattened { uid, id, name, ... , token }
     const sourceUser = data?.user ?? data;
-    const uid = sourceUser?.uid ?? data?.uid ?? data?.id ?? null;
-    const email = sourceUser?.email ?? data?.email ?? null;
-    const name = sourceUser?.name ?? data?.name ?? data?.displayName ?? null;
-    const lastName = sourceUser?.lastName ?? data?.lastName ?? null;
-    const age = sourceUser?.age ?? data?.age ?? null;
-    const provider = sourceUser?.provider ?? data?.provider ?? data?.authProvider ?? null;
-    const photoURL = sourceUser?.photoURL ?? data?.photoURL ?? null;
-
     return {
-      uid,
-      email,
-      name,
-      lastName,
-      age,
-      provider,
-      photoURL,
+      uid: sourceUser?.uid ?? data?.id ?? null,
+      email: sourceUser?.email ?? null,
+      name: sourceUser?.name ?? data?.displayName ?? null,
+      lastName: sourceUser?.lastName ?? null,
+      age: sourceUser?.age ?? null,
+      provider: sourceUser?.provider ?? data?.authProvider ?? null,
+      photoURL: sourceUser?.photoURL ?? null,
     };
   };
 
-  // Submit handler (manual login)
+  /** Envío de login manual */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setLoginError(null);
 
     try {
-      const data = await loginUser({
-        email: form.email.trim(),
-        password: form.password,
-      });
-
-      // token can be in root or in data.token
+      const data = await loginUser({ email: form.email.trim(), password: form.password });
       const token = data?.token ?? data?.data?.token ?? null;
-
-      // Normalize user fields
       const userForSession = normalizeBackendUser(data);
 
-      if (!userForSession.uid || !token) {
-        console.error("Respuesta recibida del backend:", data);
-        throw new Error("Respuesta inválida del servidor.");
-      }
+      if (!userForSession.uid || !token) throw new Error("Respuesta inválida del servidor.");
 
-      // Prefer context setter setSessionFromLogin if available (new AuthContext API)
       if (typeof (auth as any).setSessionFromLogin === "function") {
-        (auth as any).setSessionFromLogin({
-          user: {
-            uid: userForSession.uid,
-            email: userForSession.email,
-            name: userForSession.name,
-            // include optional fields if available
-            lastName: userForSession.lastName ?? undefined,
-            age: userForSession.age ?? undefined,
-            provider: userForSession.provider ?? undefined,
-          },
-          token,
-        });
-      } else if (typeof (auth as any).loginFirebase === "function") {
-        // backward compatibility: some contexts expose loginFirebase(uid,email,name,token)
-        (auth as any).loginFirebase(
-          {
-            uid: userForSession.uid,
-            email: userForSession.email,
-            name: userForSession.name,
-            provider: userForSession.provider ?? "manual",
-          },
-          token
-        );
+        (auth as any).setSessionFromLogin({ user: userForSession, token });
       } else {
-        // Fallback: save to localStorage directly and set simple user in context if possible
-        try {
-          const minimalUser = {
-            uid: userForSession.uid,
-            email: userForSession.email,
-            name: userForSession.name,
-            provider: userForSession.provider ?? "manual",
-          };
-          localStorage.setItem("user", JSON.stringify(minimalUser));
-          localStorage.setItem("token", token);
-          // if context has a setter, use it
-          if (typeof (auth as any).setSessionFromOAuth === "function") {
-            (auth as any).setSessionFromOAuth({
-              uid: userForSession.uid,
-              token,
-              provider: userForSession.provider ?? "manual",
-              email: userForSession.email,
-              name: userForSession.name,
-            });
-          }
-        } catch (err) {
-          // ignore localStorage errors
-        }
+        localStorage.setItem("user", JSON.stringify(userForSession));
+        localStorage.setItem("token", token);
       }
 
       navigate("/dashboard");
@@ -183,15 +116,9 @@ export default function Login(): JSX.Element {
     }
   };
 
-  // OAuth redirects (simple redirect to backend)
-  const handleGoogleLogin = () => {
-    // backend route expected to start oauth dance and redirect back to frontend
-    window.location.href = `${BACKEND}/api/auth/google`;
-  };
-
-  const handleGitHubLogin = () => {
-    window.location.href = `${BACKEND}/api/auth/github`;
-  };
+  /** OAuth redirects */
+  const handleGoogleLogin = () => (window.location.href = `${BACKEND}/api/auth/google`);
+  const handleGitHubLogin = () => (window.location.href = `${BACKEND}/api/auth/github`);
 
   return (
     <div className="auth-page auth-page--compact">
@@ -202,7 +129,6 @@ export default function Login(): JSX.Element {
         {loginError && <div className="auth-error-banner">⚠️ {loginError}</div>}
 
         <form className="auth-card" onSubmit={handleSubmit}>
-          {/* Email */}
           <label className="auth-label">
             Correo electrónico
             <div className="auth-input-wrapper">
@@ -219,7 +145,6 @@ export default function Login(): JSX.Element {
             </div>
           </label>
 
-          {/* Password */}
           <label className="auth-label">
             Contraseña
             <div className="auth-input-wrapper" style={{ position: "relative" }}>
@@ -244,50 +169,41 @@ export default function Login(): JSX.Element {
             </div>
           </label>
 
-          {/* Remember me */}
           <div className="auth-row">
             <label className="auth-remember">
-              <input
-                type="checkbox"
-                name="remember"
-                checked={form.remember}
-                onChange={handleChange}
-              />
+              <input type="checkbox" name="remember" checked={form.remember} onChange={handleChange} />
               Recordarme
             </label>
           </div>
 
-          {/* Submit */}
+          <p className="auth-bottom-text">
+            <button type="button" className="auth-link" onClick={() => navigate("/forgot-password")}>
+              Olvidé mi contraseña
+            </button>
+          </p>
+
           <button type="submit" className="auth-submit" disabled={loading}>
             {loading ? "Iniciando..." : "Iniciar sesión"}
           </button>
 
-          {/* Divider */}
           <div className="auth-divider">
             <span className="auth-divider-line" />
             <span className="auth-divider-text">o continuar con</span>
             <span className="auth-divider-line" />
           </div>
 
-          {/* OAuth */}
           <div className="auth-social-row">
             <button type="button" className="auth-social auth-social-google" onClick={handleGoogleLogin}>
               <GoogleIcon /> <span>Google</span>
             </button>
-
             <button type="button" className="auth-social auth-social-github" onClick={handleGitHubLogin}>
               <GitHubIcon /> <span>GitHub</span>
             </button>
           </div>
 
-          {/* Register */}
           <p className="auth-bottom-text">
             ¿Aún no tienes cuenta?{" "}
-            <button
-              type="button"
-              className="auth-link"
-              onClick={() => navigate("/register")}
-            >
+            <button type="button" className="auth-link" onClick={() => navigate("/register")}>
               Crear una cuenta
             </button>
           </p>

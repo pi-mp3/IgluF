@@ -85,7 +85,7 @@ export default function Register(): JSX.Element {
   const { t } = useTranslation();
 
   const [form, setForm] = useState({
-    firstName: '',
+    name: '',
     lastName: '',
     age: '',
     email: '',
@@ -96,7 +96,6 @@ export default function Register(): JSX.Element {
   const [message, setMessage] = useState<string | null>(null);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
 
-  // Estados para mostrar/ocultar contraseña
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -122,9 +121,24 @@ export default function Register(): JSX.Element {
       setMessage('Debes aceptar los términos y condiciones');
       return;
     }
+    if (!form.name.trim() || !form.lastName.trim() || !form.email.trim() || !form.password.trim()) {
+      setMessage('Todos los campos son obligatorios');
+      return;
+    }
+    if (!form.age || Number(form.age) <= 0) {
+      setMessage('Debes ingresar una edad válida');
+      return;
+    }
 
     try {
-      const payload = { ...form, age: Number(form.age) };
+      const payload = {
+        name: form.name,
+        lastName: form.lastName,
+        age: Number(form.age),
+        email: form.email,
+        password: form.password,
+      };
+
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -132,8 +146,14 @@ export default function Register(): JSX.Element {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error en el registro');
+        let errorText;
+        try {
+          const errorData = await response.json();
+          errorText = errorData.message || 'Error en el registro';
+        } catch {
+          errorText = await response.text();
+        }
+        throw new Error(errorText);
       }
 
       setMessage('Registro exitoso');
@@ -151,16 +171,16 @@ export default function Register(): JSX.Element {
         <p className="auth-subtitle">{t('register.fillForm')}</p>
 
         <form className="auth-card" onSubmit={handleSubmit}>
-          {/* First Name */}
+          {/* Name */}
           <label className="auth-label">
             {t('register.firstName')}
             <div className="auth-input-wrapper">
               <input
                 className="auth-input"
                 type="text"
-                name="firstName"
+                name="name"
                 placeholder={t('register.placeholderFirstName')}
-                value={form.firstName}
+                value={form.name}
                 onChange={handleChange}
                 required
               />

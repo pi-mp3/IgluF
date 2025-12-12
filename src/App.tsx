@@ -27,7 +27,7 @@ import Profile from "./pages/Profile";
 import DashboardPage from "./pages/Dashboard";
 import MeetingPage from "./pages/MeetingRoom";
 import AboutUs from "./pages/AboutUs";
-import OAuthCallback from "./pages/OAuthCallback";   // <-- SOLO ESTE SE USA
+import OAuthCallback from "./pages/OAuthCallback"; // <-- Maneja Google/GitHub callback
 
 /* ---------------------------------------------------------
  * APP PRINCIPAL
@@ -69,8 +69,9 @@ export default function App(): JSX.Element {
 
           {/* -------------------------------------------------------
            * RUTA ÚNICA DE CALLBACK PARA GOOGLE / GITHUB / FIREBASE
+           * Captura token y uid y redirige automáticamente
            * ------------------------------------------------------- */}
-          <Route path="/oauth/callback" element={<OAuthCallback />} />
+          <Route path="/auth/success" element={<OAuthCallback />} />
 
           {/* -----------------------------------------------
            * RUTAS PRIVADAS (requieren sesión activa)
