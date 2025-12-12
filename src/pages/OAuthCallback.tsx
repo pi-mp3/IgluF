@@ -17,25 +17,25 @@ export default function OAuthCallback(): JSX.Element {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    // Solo ejecuta una vez
+    const handleOAuth = () => {
+      const params = new URLSearchParams(window.location.search);
 
-    const token = params.get("token");
-    const uid = params.get("uid");
-    const email = params.get("email") || null;
-    const name = params.get("name") || null;
-    const provider = params.get("provider") || "oauth";
-    const photoURL = params.get("photoURL") || null;
+      const token = params.get("token");
+      const uid = params.get("uid");
+      const email = params.get("email") || null;
+      const name = params.get("name") || null;
+      const provider = params.get("provider") || "oauth";
+      const photoURL = params.get("photoURL") || null;
 
-    // Validate required OAuth params
-    if (!token || !uid) {
-      console.error("OAuth failed: missing token or uid");
-      alert("Error al iniciar sesión. Intenta de nuevo.");
-      navigate("/login");
-      return;
-    }
+      if (!token || !uid) {
+        console.error("OAuth failed: missing token or uid");
+        alert("Error al iniciar sesión. Intenta de nuevo.");
+        navigate("/login");
+        return;
+      }
 
-    // --- FIX 1: Update global AuthContext properly ---
-    try {
+      // Actualizar contexto de manera segura
       if (typeof setSessionFromOAuth === "function") {
         setSessionFromOAuth({
           uid,
@@ -45,27 +45,23 @@ export default function OAuthCallback(): JSX.Element {
           name,
         });
       }
-    } catch (err) {
-      console.error("❌ Error setting OAuth session in context:", err);
-    }
 
-    // --- FIX 2: Persist to localStorage ---
-    try {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ uid, provider, email, name, photoURL })
-      );
-      localStorage.setItem("token", token);
-    } catch (err) {
-      console.error("❌ Failed to save session to localStorage:", err);
-    }
+      // Persistir en localStorage
+      try {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({ uid, provider, email, name, photoURL })
+        );
+        localStorage.setItem("token", token);
+      } catch (err) {
+        console.error("❌ Failed to save session to localStorage:", err);
+      }
 
-    // --- FIX 3: Redirect AFTER ensuring context writes ---
-    setTimeout(() => {
+      // Redirigir después de contexto + storage
       navigate("/dashboard");
-    }, 300);
+    };
 
-    setLoading(false);
+    handleOAuth();
   }, [navigate, setSessionFromOAuth]);
 
   return (
