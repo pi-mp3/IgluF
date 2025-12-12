@@ -96,11 +96,19 @@ export default function Login(): JSX.Element {
     try {
       const data = await loginUser({ email: form.email.trim(), password: form.password });
       const token = data?.token ?? data?.data?.token ?? null;
-      const userForSession = normalizeBackendUser(data);
+        console.log("BACKEND RAW RESPONSE:", data);
+      //const userForSession = normalizeBackendUser(data);
 
-      if (!userForSession.uid || !token) throw new Error("Respuesta inválida del servidor.");
+        if (!token) {
+            throw new Error("El servidor no devolvió un token.");
+        }
 
-      if (typeof (auth as any).setSessionFromLogin === "function") {
+        const userForSession = {
+            uid: "manual-login",    // algo genérico
+            email: form.email,
+        };
+
+        if (typeof (auth as any).setSessionFromLogin === "function") {
         (auth as any).setSessionFromLogin({ user: userForSession, token });
       } else {
         localStorage.setItem("user", JSON.stringify(userForSession));

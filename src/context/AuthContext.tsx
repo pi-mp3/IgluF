@@ -2,17 +2,15 @@
  * AuthContext.tsx
  *
  * GLOBAL AUTHENTICATION CONTEXT (JWT BASED)
- * ---------------------------------------------------------
- * Manages:
- * - User session state
- * - JWT persistence via localStorage
- * - OAuth session hydration
- * - Global logout
- *
- * User-facing messages: Spanish
  */
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 
 /* ============================================================
  * TYPES
@@ -27,7 +25,9 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;          // ✅ NEW
   loading: boolean;
+
   setSessionFromOAuth: (data: {
     uid: string;
     token: string;
@@ -35,7 +35,9 @@ interface AuthContextType {
     email?: string | null;
     name?: string | null;
   }) => void;
+
   setSessionFromLogin: (data: { user: User; token: string }) => void;
+
   logout: () => void;
 }
 
@@ -51,6 +53,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null); // ✅ NEW
   const [loading, setLoading] = useState(true);
 
   /** Load session from localStorage safely */
@@ -66,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         storedToken !== "undefined"
       ) {
         setUser(JSON.parse(storedUser));
+        setToken(storedToken); // ✅ NEW
       }
     } catch (err) {
       console.error("Failed to load user from localStorage:", err);
@@ -92,17 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }) => {
     const newUser: User = { uid, provider, email, name };
 
-    setUser(prev => {
-      if (
-        prev?.uid === newUser.uid &&
-        prev?.email === newUser.email &&
-        prev?.name === newUser.name &&
-        prev?.provider === newUser.provider
-      ) {
-        return prev; // evitar re-render innecesario
-      }
-      return newUser;
-    });
+    setUser(newUser);
+    setToken(token); // ✅ NEW
 
     try {
       localStorage.setItem("user", JSON.stringify(newUser));
@@ -114,17 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /** Manual login (email/password) */
   const setSessionFromLogin = ({ user, token }: { user: User; token: string }) => {
-    setUser(prev => {
-      if (
-        prev?.uid === user.uid &&
-        prev?.email === user.email &&
-        prev?.name === user.name &&
-        prev?.provider === user.provider
-      ) {
-        return prev;
-      }
-      return user;
-    });
+    setUser(user);
+    setToken(token); // ✅ NEW
 
     try {
       localStorage.setItem("user", JSON.stringify(user));
@@ -137,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /** Global logout */
   const logout = () => {
     setUser(null);
+    setToken(null); // ✅ NEW
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     window.location.href = "/login";
@@ -146,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        token,               // ✅ NEW
         loading,
         setSessionFromOAuth,
         setSessionFromLogin,
