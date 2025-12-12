@@ -74,7 +74,7 @@ export const registerUser = async (userData: RegisterData) => {
 /**
  * Login using email/password
  * Backend: POST /api/auth/login
- * 
+ *
  * Returns the token and user data directly from backend.
  */
 export const loginUser = async (credentials: LoginData) => {
@@ -212,13 +212,18 @@ export const getUserById = async (id: string): Promise<User> => {
 /* ============================================================
  * GET LOGGED USER (TOKEN)
  * NEW — REQUIRED BY Profile.tsx
- * Backend: GET /api/auth/me
+ * Adjusted to use the existing route /api/user/:uid
  * ============================================================ */
 
-export const getUser = async (): Promise<User> => {
+/**
+ * Get currently logged user using Firebase UID
+ * Backend: GET /api/user/:id
+ * Note: UID comes from Firebase Auth
+ */
+export const getUser = async (uid: string): Promise<User> => {
   try {
-    const res = await http.get("/auth/me"); // token automatically included by http interceptor
-    return res.data; // Devuelve directamente los campos que envía tu backend
+    const res = await http.get(`/user/${uid}`); // <-- uses your existing route
+    return res.data;
   } catch (err: any) {
     throw new Error(extractError(err));
   }
