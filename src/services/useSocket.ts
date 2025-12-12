@@ -1,52 +1,64 @@
 /**
  * useSocket.ts
- * 
- * Socket.IO client singleton service for Chat and Audio/Video.
- * 
+ *
+ * Socket.IO client service (Chat & Audio/Video)
+ *
  * Features:
- *  - Automatic token refresh for Firebase OAuth or manual JWT
- *  - Reconnection with retries
- *  - Supports both development (localhost) and production (Render/Vercel) URLs
- *  - Separate instances for chat and audio/video
- *  - Alias `getSocket` points to chat socket for backward compatibility
- * 
- * Usage:
- *  import { getSocket, getChatSocket, getAudioSocket } from './services/useSocket';
- * 
- *  const chat = await getSocket(); // same as getChatSocket()
- *  chat.emit('joinRoom', { roomId: 'ABC123' });
- * 
- *  const audio = await getAudioSocket();
- *  audio.emit('startCall', { meetingId: 'ABC123' });
+ *  - Token authentication (Firebase or localStorage)
+ *  - Auto reconnection and retry logic
+ *  - Works for localhost and production environments
+ *  - Two instances: chatSocket & audioSocket
+ *  - Includes legacy getSocket() for backward compatibility
  */
 
 import { io, Socket } from "socket.io-client";
 import { auth } from "../firebaseConfig";
 
-// Singleton instances
+/* ============================================================
+ * SINGLETON INSTANCES
+ * ============================================================ */
+
 let chatSocket: Socket | null = null;
 let audioSocket: Socket | null = null;
+
+/* ============================================================
+ * TOKEN HANDLER
+ * ============================================================ */
 
 /**
  * Retrieves authentication token (Firebase or localStorage)
  */
 async function getAuthToken(): Promise<string> {
   const user = auth.currentUser;
+
   if (user) {
     return await user.getIdToken(true);
   }
-  const storedToken = localStorage.getItem("accessToken");
+
+  const storedToken = localStorage.getItem("token") || localStorage.getItem("accessToken");
   if (!storedToken) throw new Error("No hay sesión activa. Por favor inicia sesión nuevamente.");
+
   return storedToken;
 }
 
+/* ============================================================
+ * SOCKET FACTORY
+ * ============================================================ */
+
 /**
- * Creates a Socket.IO client instance
+ * Creates a new socket instance with authentication + reconnection
  */
-async function createSocket(url: string): Promise<Socket> {
+async function createSocket(url?: string): Promise<Socket> {
   const token = await getAuthToken();
 
-  const socket = io(url, {
+  const finalUrl =
+    url ||
+    import.meta.env.VITE_SOCKET_CHAT_URL ||
+    (import.meta.env.MODE === "development"
+      ? "http://localhost:5001"
+      : "https://servidorchatb.onrender.com");
+
+  const socket = io(finalUrl, {
     autoConnect: false,
     transports: ["websocket"],
     reconnection: true,
@@ -54,57 +66,63 @@ async function createSocket(url: string): Promise<Socket> {
     reconnectionDelay: 1000,
   });
 
-  // Attach token for authentication
+  // Attach token BEFORE connecting
   socket.auth = { token };
 
-  // Handlers
+  /* ---------------------------
+   * Event Handlers
+   * --------------------------- */
+
   socket.on("connect", () => {
-    console.log(`✅ Socket conectado a ${url} exitosamente. ID:`, socket.id);
+    console.log(`✅ Socket conectado: ${socket.id} → ${finalUrl}`);
   });
 
   socket.on("connect_error", async (err: any) => {
-    console.error(`❌ Error de conexión Socket a ${url}:`, err.message);
-    if (err?.message?.includes("id-token-expired") || err?.message?.includes("No autorizado")) {
+    console.error(`❌ Error conexión socket → ${finalUrl}:`, err.message);
+
+    if (err.message?.includes("id-token-expired") || err.message?.includes("No autorizado")) {
       try {
-        const newToken = await getAuthToken();
-        socket.auth = { token: newToken };
+        const refreshed = await getAuthToken();
+        socket.auth = { token: refreshed };
         socket.connect();
-      } catch (refreshErr) {
-        console.error("❌ Error al refrescar token:", refreshErr);
+      } catch (e) {
+        console.error("❌ Error al refrescar token:", e);
       }
     }
   });
 
   socket.on("disconnect", (reason) => {
-    console.warn(`🔌 Socket desconectado de ${url}. Razón:`, reason);
+    console.warn(`🔌 Socket desconectado (${finalUrl}):`, reason);
   });
 
-  // Connect with timeout
-  if (!socket.connected) {
-    socket.connect();
-    await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error(`Timeout al conectar con ${url}. Verifica que el servicio esté corriendo.`));
-      }, 10000);
+  /* ---------------------------
+   * Start connection with timeout
+   * --------------------------- */
+  socket.connect();
 
-      socket.once("connect", () => {
-        clearTimeout(timeout);
-        resolve();
-      });
+  await new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(`⏳ Timeout al conectar con ${finalUrl}. ¿Servidor caído?`));
+    }, 10000);
 
-      socket.once("connect_error", (err) => {
-        clearTimeout(timeout);
-        reject(err);
-      });
+    socket.once("connect", () => {
+      clearTimeout(timeout);
+      resolve();
     });
-  }
+
+    socket.once("connect_error", (err) => {
+      clearTimeout(timeout);
+      reject(err);
+    });
+  });
 
   return socket;
 }
 
-/**
- * Returns singleton instance for Chat socket
- */
+/* ============================================================
+ * CHAT SOCKET
+ * ============================================================ */
+
 export async function getChatSocket(): Promise<Socket> {
   if (chatSocket && chatSocket.connected) return chatSocket;
 
@@ -116,9 +134,10 @@ export async function getChatSocket(): Promise<Socket> {
   return chatSocket;
 }
 
-/**
- * Returns singleton instance for Audio/Video socket
- */
+/* ============================================================
+ * AUDIO SOCKET
+ * ============================================================ */
+
 export async function getAudioSocket(): Promise<Socket> {
   if (audioSocket && audioSocket.connected) return audioSocket;
 
@@ -130,8 +149,35 @@ export async function getAudioSocket(): Promise<Socket> {
   return audioSocket;
 }
 
+/* ============================================================
+ * LEGACY EXPORT (Needed by MeetingRoom.tsx)
+ * ============================================================ */
+
 /**
- * Alias for backward compatibility
- * `getSocket()` points to chat socket
+ * getSocket()
+ * 
+ * LEGACY SUPPORT.
+ * Some older pages still call getSocket(), so we keep it.
+ * This returns the chat socket by default.
  */
-export const getSocket = getChatSocket;
+export async function getSocket(): Promise<Socket> {
+  return await getChatSocket();
+}
+
+/* ============================================================
+ * DEFAULT MODERN HOOK-LIKE OBJECT
+ * ============================================================ */
+
+/**
+ * Modern usage:
+ *   const { socket, connect } = useSocket();
+ */
+export function useSocket() {
+  return {
+    socket: chatSocket,
+    connect: async () => {
+    chatSocket = await getChatSocket();
+    return chatSocket;
+    },
+  };
+}

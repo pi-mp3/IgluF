@@ -5,16 +5,6 @@
  * Extracts JWT and user info from URL query parameters,
  * saves the session in AuthContext, persists in localStorage,
  * and redirects to the dashboard.
- *
- * User-facing messages: Spanish
- * Developer documentation: English
- *
- * Notes:
- * - Works for both Google and GitHub OAuth.
- * - Expects backend to redirect with:
- *      /oauth/callback?token=JWT&uid=USER_ID&email=EMAIL&name=NAME&provider=PROVIDER
- * - If token or uid is missing, user is redirected back to /login
- * - Compatible with development (localhost) and production (domain) deployments
  */
 
 import React, { useEffect, useState } from "react";
@@ -27,7 +17,6 @@ export default function OAuthCallback(): JSX.Element {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Parse query parameters from URL
     const params = new URLSearchParams(window.location.search);
 
     const token = params.get("token");
@@ -35,8 +24,9 @@ export default function OAuthCallback(): JSX.Element {
     const email = params.get("email") || null;
     const name = params.get("name") || null;
     const provider = params.get("provider") || "oauth";
+    const photoURL = params.get("photoURL") || null;
 
-    // Validate required parameters
+    // Validate required OAuth params
     if (!token || !uid) {
       console.error("OAuth failed: missing token or uid");
       alert("Error al iniciar sesión. Intenta de nuevo.");
@@ -44,28 +34,38 @@ export default function OAuthCallback(): JSX.Element {
       return;
     }
 
-    // Save session via AuthContext
-    if (typeof setSessionFromOAuth === "function") {
-      setSessionFromOAuth({ uid, token, provider, email, name });
+    // --- FIX 1: Update global AuthContext properly ---
+    try {
+      if (typeof setSessionFromOAuth === "function") {
+        setSessionFromOAuth({
+          uid,
+          token,
+          provider,
+          email,
+          name,
+        });
+      }
+    } catch (err) {
+      console.error("❌ Error setting OAuth session in context:", err);
     }
 
-    // Persist session in localStorage
+    // --- FIX 2: Persist to localStorage ---
     try {
       localStorage.setItem(
         "user",
-        JSON.stringify({ uid, provider, email, name })
+        JSON.stringify({ uid, provider, email, name, photoURL })
       );
       localStorage.setItem("token", token);
     } catch (err) {
-      console.error("Failed to save session to localStorage:", err);
+      console.error("❌ Failed to save session to localStorage:", err);
     }
 
-    // Redirect to dashboard after a short delay
-    const timer = setTimeout(() => navigate("/dashboard"), 500);
+    // --- FIX 3: Redirect AFTER ensuring context writes ---
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 300);
 
     setLoading(false);
-
-    return () => clearTimeout(timer);
   }, [navigate, setSessionFromOAuth]);
 
   return (
