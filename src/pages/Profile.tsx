@@ -5,8 +5,9 @@
  *
  * Description:
  * Manages the authenticated user's profile with full CRUD operations
- * and logout, using Firebase Auth and backend API. Includes confirmation
- * modals for logout and delete, styled with consistent button design.
+ * (excluding delete, handled elsewhere) and logout, using Firebase Auth
+ * and backend API. Includes confirmation modal for logout, styled buttons,
+ * error/success messages, and auto-cleanup of notifications.
  *
  * UI:
  *  - All user-facing text is in Spanish
@@ -22,6 +23,7 @@
  * Notes:
  * - Email comes from Firebase and is read-only
  * - Password is not editable
+ * - Delete functionality is handled in another component/instance
  * ============================================================
  */
 
@@ -29,7 +31,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { getUser, updateUser, deleteUser } from "./api";
+import { getUser, updateUser } from "./api";
 import { User } from "../Models/User";
 import { useAuth } from "../context/AuthContext";
 
@@ -42,14 +44,13 @@ interface ProfileForm {
 
 export default function Profile(): JSX.Element {
   const navigate = useNavigate();
-  const { logout } = useAuth(); // Contexto global de auth
+  const { logout } = useAuth(); // Global auth context
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
   const [error, setError] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const [form, setForm] = useState<ProfileForm>({
@@ -59,7 +60,7 @@ export default function Profile(): JSX.Element {
     email: "",
   });
 
-  /** Detecta usuario logueado en Firebase */
+  /** Detect logged-in Firebase user */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
@@ -72,7 +73,7 @@ export default function Profile(): JSX.Element {
     return () => unsubscribe();
   }, [navigate]);
 
-  /** Obtiene perfil desde backend */
+  /** Fetch user profile from backend */
   useEffect(() => {
     if (!userId) return;
 
@@ -102,13 +103,13 @@ export default function Profile(): JSX.Element {
     fetchUser();
   }, [userId]);
 
-  /** Maneja cambios en inputs */
+  /** Handle input changes */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  /** Guarda cambios del perfil */
+  /** Save profile changes */
   const handleSave = async () => {
     if (!userId) return;
     setError("");
@@ -121,35 +122,25 @@ export default function Profile(): JSX.Element {
 
     try {
       await updateUser(userId, {
-        firstName: form.name,
+        name: form.name,
         lastName: form.lastName,
         age: Number(form.age),
       });
       setIsEditing(false);
       setSuccessMessage("Perfil actualizado correctamente.");
+
+      // Auto-clear success message after 4 seconds
+      setTimeout(() => setSuccessMessage(""), 4000);
     } catch (err: any) {
       console.error("Error saving profile:", err);
       setError("Error guardando perfil: " + err.message);
+
+      // Auto-clear error after 6 seconds
+      setTimeout(() => setError(""), 6000);
     }
   };
 
-  /** Modal de eliminación */
-  const handleDelete = () => setShowDeleteModal(true);
-  const confirmDelete = async () => {
-    if (!userId) return;
-    try {
-      await deleteUser(userId);
-      await signOut(auth);
-      logout();
-      navigate("/login");
-    } catch (err: any) {
-      setError("Error al eliminar cuenta: " + err.message);
-    } finally {
-      setShowDeleteModal(false);
-    }
-  };
-
-  /** Modal de logout */
+  /** Logout modal handlers */
   const handleLogout = () => setShowLogoutModal(true);
   const confirmLogout = async () => {
     try {
@@ -158,6 +149,7 @@ export default function Profile(): JSX.Element {
       navigate("/login");
     } catch (err: any) {
       setError("Error al cerrar sesión: " + err.message);
+      setTimeout(() => setError(""), 6000);
     } finally {
       setShowLogoutModal(false);
     }
@@ -182,9 +174,7 @@ export default function Profile(): JSX.Element {
         {successMessage && <p className="profile-success">✔ {successMessage}</p>}
 
         <form
-          className={`auth-card profile-card ${
-            isEditing ? "profile-card--editing" : ""
-          }`}
+          className={`auth-card profile-card ${isEditing ? "profile-card--editing" : ""}`}
           onSubmit={(e) => e.preventDefault()}
         >
           <div className="profile-section-header">
@@ -196,11 +186,7 @@ export default function Profile(): JSX.Element {
                 </p>
               )}
             </div>
-            <span
-              className={`profile-status-pill ${
-                isEditing ? "profile-status-pill--editing" : ""
-              }`}
-            >
+            <span className={`profile-status-pill ${isEditing ? "profile-status-pill--editing" : ""}`}>
               {isEditing ? "Editando" : "Solo lectura"}
             </span>
           </div>
@@ -208,11 +194,7 @@ export default function Profile(): JSX.Element {
           <div className="profile-grid">
             <label className="auth-label">
               Nombre
-              <div
-                className={`auth-input-wrapper ${
-                  isEditing ? "profile-input-editable" : ""
-                }`}
-              >
+              <div className={`auth-input-wrapper ${isEditing ? "profile-input-editable" : ""}`}>
                 <span className="auth-input-icon">👤</span>
                 <input
                   className="auth-input"
@@ -227,11 +209,7 @@ export default function Profile(): JSX.Element {
 
             <label className="auth-label">
               Apellido
-              <div
-                className={`auth-input-wrapper ${
-                  isEditing ? "profile-input-editable" : ""
-                }`}
-              >
+              <div className={`auth-input-wrapper ${isEditing ? "profile-input-editable" : ""}`}>
                 <span className="auth-input-icon">👤</span>
                 <input
                   className="auth-input"
@@ -246,11 +224,7 @@ export default function Profile(): JSX.Element {
 
             <label className="auth-label">
               Edad
-              <div
-                className={`auth-input-wrapper ${
-                  isEditing ? "profile-input-editable" : ""
-                }`}
-              >
+              <div className={`auth-input-wrapper ${isEditing ? "profile-input-editable" : ""}`}>
                 <span className="auth-input-icon">🎂</span>
                 <input
                   className="auth-input"
@@ -267,23 +241,14 @@ export default function Profile(): JSX.Element {
               Correo electrónico
               <div className="auth-input-wrapper">
                 <span className="auth-input-icon">@</span>
-                <input
-                  className="auth-input"
-                  type="email"
-                  disabled
-                  value={form.email}
-                />
+                <input className="auth-input" type="email" disabled value={form.email} />
               </div>
             </label>
           </div>
 
           <div className="profile-actions">
             {isEditing ? (
-              <button
-                type="button"
-                className="auth-submit profile-primary-btn"
-                onClick={handleSave}
-              >
+              <button type="button" className="auth-submit profile-primary-btn" onClick={handleSave}>
                 Guardar cambios
               </button>
             ) : (
@@ -303,15 +268,6 @@ export default function Profile(): JSX.Element {
             <div className="profile-secondary-actions">
               <button
                 type="button"
-                className="profile-delete-btn profile-primary-btn"
-                style={{ backgroundColor: "#ff2600ff", color: "#fff", borderRadius: 25 }}
-                onClick={handleDelete}
-              >
-                Eliminar cuenta
-              </button>
-
-              <button
-                type="button"
                 className="profile-logout-btn profile-primary-btn"
                 style={{ backgroundColor: "#e53935", color: "#fff", borderRadius: 25 }}
                 onClick={handleLogout}
@@ -322,26 +278,6 @@ export default function Profile(): JSX.Element {
           </div>
         </form>
       </div>
-
-      {/* Delete Modal */}
-      {showDeleteModal && (
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <h3 className="modal-title">Eliminar cuenta</h3>
-            <p className="modal-text">
-              Esta acción eliminará permanentemente tu cuenta y no podrá deshacerse. ¿Deseas continuar?
-            </p>
-            <div className="modal-actions">
-              <button className="modal-btn modal-btn-cancel" onClick={() => setShowDeleteModal(false)}>
-                Cancelar
-              </button>
-              <button className="modal-btn modal-btn-danger" onClick={confirmDelete}>
-                Sí, eliminar cuenta
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Logout Modal */}
       {showLogoutModal && (
