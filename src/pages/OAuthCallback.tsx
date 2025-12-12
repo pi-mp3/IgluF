@@ -2,13 +2,22 @@
  * OAuthCallback.tsx
  *
  * Handles OAuth redirection from Google or GitHub.
- * Extracts JWT and user info from URL query params,
- * saves session in AuthContext, and redirects to dashboard.
+ * Extracts JWT and user info from URL query parameters,
+ * saves the session in AuthContext, persists in localStorage,
+ * and redirects to the dashboard.
  *
  * User-facing messages: Spanish
+ * Developer documentation: English
+ *
+ * Notes:
+ * - Works for both Google and GitHub OAuth.
+ * - Expects backend to redirect with:
+ *      /oauth/callback?token=JWT&uid=USER_ID&email=EMAIL&name=NAME&provider=PROVIDER
+ * - If token or uid is missing, user is redirected back to /login
+ * - Compatible with development (localhost) and production (domain) deployments
  */
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -18,6 +27,7 @@ export default function OAuthCallback(): JSX.Element {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Parse query parameters from URL
     const params = new URLSearchParams(window.location.search);
 
     const token = params.get("token");
@@ -34,18 +44,23 @@ export default function OAuthCallback(): JSX.Element {
       return;
     }
 
-    // Save session via AuthContext (no loop posible)
-    setSessionFromOAuth({ uid, token, provider, email, name });
+    // Save session via AuthContext
+    if (typeof setSessionFromOAuth === "function") {
+      setSessionFromOAuth({ uid, token, provider, email, name });
+    }
 
-    // Optional: persist in localStorage
+    // Persist session in localStorage
     try {
-      localStorage.setItem("user", JSON.stringify({ uid, provider, email, name }));
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ uid, provider, email, name })
+      );
       localStorage.setItem("token", token);
     } catch (err) {
       console.error("Failed to save session to localStorage:", err);
     }
 
-    // Redirect to dashboard after short delay
+    // Redirect to dashboard after a short delay
     const timer = setTimeout(() => navigate("/dashboard"), 500);
 
     setLoading(false);

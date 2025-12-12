@@ -30,7 +30,7 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { getUser, updateUser, deleteUser } from "./api";
-import { User } from "../models/User";
+import { User } from "../Models/User";
 import { useAuth } from "../context/AuthContext";
 
 interface ProfileForm {
@@ -40,15 +40,15 @@ interface ProfileForm {
   email: string;
 }
 
-export default function Profile() {
+export default function Profile(): JSX.Element {
   const navigate = useNavigate();
-  const { logout } = useAuth(); // usa el contexto global
+  const { logout } = useAuth(); // Contexto global de auth
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
-  const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [error, setError] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -59,7 +59,7 @@ export default function Profile() {
     email: "",
   });
 
-  // Detect Firebase logged-in user
+  /** Detecta usuario logueado en Firebase */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
@@ -72,12 +72,13 @@ export default function Profile() {
     return () => unsubscribe();
   }, [navigate]);
 
-  // Fetch user profile from backend
+  /** Obtiene perfil desde backend */
   useEffect(() => {
     if (!userId) return;
+
     const fetchUser = async () => {
       try {
-        const data = await getUser(userId) as User | null; 
+        const data = (await getUser(userId)) as User | null;
         if (!data) {
           setError("No hay datos guardados. Completa tu perfil.");
           setIsEditing(true);
@@ -97,15 +98,17 @@ export default function Profile() {
         setLoading(false);
       }
     };
+
     fetchUser();
   }, [userId]);
 
+  /** Maneja cambios en inputs */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Save profile changes
+  /** Guarda cambios del perfil */
   const handleSave = async () => {
     if (!userId) return;
     setError("");
@@ -130,14 +133,14 @@ export default function Profile() {
     }
   };
 
-  // Delete account
+  /** Modal de eliminación */
   const handleDelete = () => setShowDeleteModal(true);
   const confirmDelete = async () => {
     if (!userId) return;
     try {
       await deleteUser(userId);
       await signOut(auth);
-      logout(); // cierra sesión en contexto global
+      logout();
       navigate("/login");
     } catch (err: any) {
       setError("Error al eliminar cuenta: " + err.message);
@@ -146,13 +149,13 @@ export default function Profile() {
     }
   };
 
-  // Logout
+  /** Modal de logout */
   const handleLogout = () => setShowLogoutModal(true);
   const confirmLogout = async () => {
     try {
       await signOut(auth);
-      logout(); // asegura cerrar sesión en contexto global
-      navigate("/login"); // redirige correctamente a login
+      logout();
+      navigate("/login");
     } catch (err: any) {
       setError("Error al cerrar sesión: " + err.message);
     } finally {
@@ -264,7 +267,12 @@ export default function Profile() {
               Correo electrónico
               <div className="auth-input-wrapper">
                 <span className="auth-input-icon">@</span>
-                <input className="auth-input" type="email" disabled value={form.email} />
+                <input
+                  className="auth-input"
+                  type="email"
+                  disabled
+                  value={form.email}
+                />
               </div>
             </label>
           </div>
@@ -296,11 +304,7 @@ export default function Profile() {
               <button
                 type="button"
                 className="profile-delete-btn profile-primary-btn"
-                style={{
-                  backgroundColor: "#ff2600ff",
-                  color: "#fff",
-                  borderRadius: "25px", // igual que el botón de editar
-                }}
+                style={{ backgroundColor: "#ff2600ff", color: "#fff", borderRadius: 25 }}
                 onClick={handleDelete}
               >
                 Eliminar cuenta
@@ -309,11 +313,7 @@ export default function Profile() {
               <button
                 type="button"
                 className="profile-logout-btn profile-primary-btn"
-                style={{
-                  backgroundColor: "#e53935",
-                  color: "#fff",
-                  borderRadius: "25px", // igual que el botón de editar
-                }}
+                style={{ backgroundColor: "#e53935", color: "#fff", borderRadius: 25 }}
                 onClick={handleLogout}
               >
                 Cerrar sesión
@@ -332,16 +332,10 @@ export default function Profile() {
               Esta acción eliminará permanentemente tu cuenta y no podrá deshacerse. ¿Deseas continuar?
             </p>
             <div className="modal-actions">
-              <button
-                className="modal-btn modal-btn-cancel"
-                onClick={() => setShowDeleteModal(false)}
-              >
+              <button className="modal-btn modal-btn-cancel" onClick={() => setShowDeleteModal(false)}>
                 Cancelar
               </button>
-              <button
-                className="modal-btn modal-btn-danger"
-                onClick={confirmDelete}
-              >
+              <button className="modal-btn modal-btn-danger" onClick={confirmDelete}>
                 Sí, eliminar cuenta
               </button>
             </div>
@@ -358,16 +352,10 @@ export default function Profile() {
               Se cerrará tu sesión actual en Iglú. Podrás volver a iniciar sesión cuando quieras usando tu correo y contraseña.
             </p>
             <div className="modal-actions">
-              <button
-                className="modal-btn modal-btn-cancel"
-                onClick={() => setShowLogoutModal(false)}
-              >
+              <button className="modal-btn modal-btn-cancel" onClick={() => setShowLogoutModal(false)}>
                 Cancelar
               </button>
-              <button
-                className="modal-btn modal-btn-danger"
-                onClick={confirmLogout}
-              >
+              <button className="modal-btn modal-btn-danger" onClick={confirmLogout}>
                 Cerrar sesión
               </button>
             </div>
