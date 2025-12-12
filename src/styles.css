@@ -1937,3 +1937,14 @@ body {
   opacity: 0.5;
   font-size: 1.1rem;
 }
+
+/* Fix: permite que los hijos con overflow/grid no “se corten” dentro de layouts flex */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  min-height: 0;
+}
