@@ -35,6 +35,8 @@ export default function MeetingRoom() {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isSharingScreen, setIsSharingScreen] = useState(false);
+  const [fitContain, setFitContain] = useState(false);
+
 
   // Refs
   const socketRef = useRef<any>(null);
@@ -279,13 +281,80 @@ export default function MeetingRoom() {
     }
   };
 
-  const toggleVideo = () => {
-    if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoOff(!videoTrack.enabled);
+  const toggleVideo = async () => {
+    if (!localStream) return;
+
+    // Peers de cámara (no toques peers de pantalla)
+    const cameraPeers = peersRef.current.filter(
+      (p) => !p.peerId.includes("-screen") && !p.peerId.includes("-to-my-screen")
+    );
+
+    // ===== APAGAR (real) =====
+    if (!isVideoOff) {
+      const currentTrack = localStream.getVideoTracks()[0];
+      if (!currentTrack) {
+        setIsVideoOff(true);
+        return;
       }
+
+      // 1) Dejar de enviar el track a TODOS los peers (renegocia)
+      cameraPeers.forEach(({ peer }) => {
+        try {
+          peer.removeTrack(currentTrack, localStream);
+        } catch (e) {
+          console.warn("removeTrack fallo:", e);
+        }
+      });
+
+      // 2) Detener físicamente la cámara (libera el dispositivo)
+      currentTrack.stop();
+      localStream.removeTrack(currentTrack);
+
+      // 3) Refrescar el video local (queda negro o solo audio)
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = localStream;
+      }
+
+      setIsVideoOff(true);
+      return;
+    }
+
+    // ===== ENCENDER =====
+    try {
+      // Pedimos un NUEVO track (porque el anterior se detuvo con stop())
+      const cam = await navigator.mediaDevices.getUserMedia({ video: true });
+      const newTrack = cam.getVideoTracks()[0];
+      if (!newTrack) return;
+
+      // Por si acaso: evitar duplicados
+      const existing = localStream.getVideoTracks()[0];
+      if (existing) {
+        existing.stop();
+        localStream.removeTrack(existing);
+      }
+
+      // 1) Agregar track al stream local
+      localStream.addTrack(newTrack);
+
+      // 2) Reponer video local
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = localStream;
+        localVideoRef.current.play?.().catch(() => {});
+      }
+
+      // 3) Volver a enviar el track a peers (renegocia)
+      cameraPeers.forEach(({ peer }) => {
+        try {
+          peer.addTrack(newTrack, localStream);
+        } catch (e) {
+          console.warn("addTrack fallo:", e);
+        }
+      });
+
+      setIsVideoOff(false);
+    } catch (err) {
+      console.error("No se pudo reactivar la cámara:", err);
+      alert("No se pudo reactivar la cámara. Revisa permisos del navegador.");
     }
   };
 
@@ -384,7 +453,7 @@ export default function MeetingRoom() {
           {/* Participants grid */}
           <section className="meeting-grid">
             {/* Local Video */}
-            <article className="meeting-tile meeting-tile-video">
+            <article className={`meeting-tile meeting-tile-video local ${fitContain ? "fit-contain" : ""}`}>
               <video
                 ref={localVideoRef}
                 autoPlay
@@ -472,6 +541,15 @@ export default function MeetingRoom() {
               {isMuted ? "🔇" : "🎤"}
             </button>
             
+            <button
+              className="meeting-control-btn"
+              onClick={() => setFitContain(v => !v)}
+              title={fitContain ? "Llenar (recorta)" : "Ajustar (no recorta)"}
+            >
+              {fitContain ? "⤢" : "⤡"}
+            </button>
+
+
             <button 
               className={`meeting-control-btn ${isVideoOff ? "muted" : ""}`} 
               onClick={toggleVideo} 
