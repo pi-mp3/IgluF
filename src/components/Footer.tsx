@@ -26,7 +26,15 @@ export default function Footer() {
           <ul className="footer-list">
             <li>Características</li>
             <li>Precios</li>
-            <li>Documentación</li>
+            <li>
+              <a
+                href="/📘 MANUAL DE USUARIO – Plataforma de Videoconferencias.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Documentación
+              </a>
+            </li>
           </ul>
         </div>
 
@@ -47,3 +55,4 @@ export default function Footer() {
     </footer>
   );
 }
+
